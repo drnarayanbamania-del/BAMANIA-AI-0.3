@@ -2,59 +2,54 @@
 <html lang="en" class="dark">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Bamania AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Tailwind -->
+  <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
     body {
-      background: #030712;
-      color: #e5e7eb;
-      font-family: system-ui, sans-serif;
+      background: #020617;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont;
     }
-    .card {
-      background: rgba(255,255,255,0.05);
-      backdrop-filter: blur(12px);
+    .glass {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(14px);
       border: 1px solid rgba(255,255,255,0.1);
     }
-    .logo {
-      background: linear-gradient(135deg,#60a5fa,#2563eb);
+    .logo-gradient {
+      background: linear-gradient(135deg, #60a5fa, #2563eb);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
   </style>
 </head>
 
-<body class="min-h-screen flex items-center justify-center">
+<body class="min-h-screen flex items-center justify-center text-white">
 
-  <!-- LOGIN CARD -->
-  <div class="card rounded-xl p-8 w-[320px] text-center space-y-4">
-
-    <h1 class="text-3xl font-bold logo">BAMANIA AI</h1>
-    <p id="statusText" class="text-sm text-gray-400">
+  <div class="glass rounded-xl p-8 w-[340px] text-center">
+    <h1 class="text-4xl font-bold logo-gradient mb-2">BAMANIA AI</h1>
+    <p id="statusText" class="text-sm text-gray-300 mb-6">
       Offline Mode · Guest
     </p>
 
     <button
       onclick="googleLogin()"
-      class="w-full py-2 rounded bg-blue-500 hover:bg-blue-600 transition text-white font-medium"
-    >
+      class="w-full py-2 rounded bg-blue-600 hover:bg-blue-700 transition mb-4">
       Login with Google
     </button>
 
-    <p class="text-sm">
+    <p class="mb-2">
       Credits Left:
-      <span id="creditsLeft">0</span>
+      <span id="creditsLeft" class="font-bold">0</span>
     </p>
 
     <button
       onclick="useCredit()"
+      class="w-full py-2 rounded bg-red-600 disabled:opacity-40"
       id="useBtn"
-      disabled
-      class="w-full py-2 rounded bg-red-500 opacity-50 cursor-not-allowed text-white"
-    >
+      disabled>
       Use Credit
     </button>
   </div>
@@ -66,7 +61,6 @@
       getAuth,
       GoogleAuthProvider,
       signInWithPopup,
-      signInWithRedirect,
       onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import {
@@ -77,77 +71,92 @@
       updateDoc
     } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+    // ✅ Firebase config (YOUR PROJECT)
     const firebaseConfig = {
-      apiKey: "AIzaSyB112az1gQpxM310bk9DH7iqSGsHDLb5jM",
+      apiKey: "AIzaSyB112azIgQpxM31b0k9DH7jq5GsHDLb5jM",
       authDomain: "bamania-ai-0-3.firebaseapp.com",
       projectId: "bamania-ai-0-3",
+      storageBucket: "bamania-ai-0-3.appspot.com",
+      messagingSenderId: "41766120360",
+      appId: "1:41766120360:web:98516eccfbba9a88b549d"
     };
 
+    // Init
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
 
-    const creditsEl = document.getElementById("creditsLeft");
-    const statusEl = document.getElementById("statusText");
-    const useBtn = document.getElementById("useBtn");
-
-    // 🔐 LOGIN
+    // 🔑 GOOGLE LOGIN (FIXED)
     window.googleLogin = async () => {
-      const provider = new GoogleAuthProvider();
       try {
-        await signInWithPopup(auth, provider);
-      } catch (e) {
-        console.warn("Popup blocked, redirecting...");
-        await signInWithRedirect(auth, provider);
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+
+        const ref = doc(db, "users", user.uid);
+        const snap = await getDoc(ref);
+
+        if (!snap.exists()) {
+          await setDoc(ref, {
+            email: user.email,
+            credits: 5,
+            createdAt: Date.now()
+          });
+        }
+
+      } catch (err) {
+        console.error(err);
+        alert("Login failed: " + err.message);
       }
     };
 
-    // 👤 AUTH STATE
+    // 🔄 AUTH STATE
     onAuthStateChanged(auth, async (user) => {
-      if (!user) return;
+      const status = document.getElementById("statusText");
+      const creditsEl = document.getElementById("creditsLeft");
+      const btn = document.getElementById("useBtn");
 
-      statusEl.textContent = "Logged in as " + user.email;
+      if (!user) {
+        status.innerText = "Offline Mode · Guest";
+        creditsEl.innerText = "0";
+        btn.disabled = true;
+        return;
+      }
+
+      status.innerText = "Logged in as " + user.email;
 
       const ref = doc(db, "users", user.uid);
       const snap = await getDoc(ref);
 
-      if (!snap.exists()) {
-        await setDoc(ref, {
-          credits: 5,
-          createdAt: Date.now()
-        });
-        creditsEl.textContent = 5;
-      } else {
-        creditsEl.textContent = snap.data().credits;
+      if (snap.exists()) {
+        const credits = snap.data().credits;
+        creditsEl.innerText = credits;
+        btn.disabled = credits <= 0;
       }
-
-      toggleUseBtn();
     });
 
-    // ➖ USE CREDIT
+    // 🔻 USE CREDIT
     window.useCredit = async () => {
       const user = auth.currentUser;
-      if (!user) return alert("Login required");
+      if (!user) {
+        alert("Please login first");
+        return;
+      }
 
       const ref = doc(db, "users", user.uid);
       const snap = await getDoc(ref);
 
-      if (!snap.exists()) return;
+      if (!snap.exists() || snap.data().credits <= 0) {
+        alert("No credits left");
+        return;
+      }
 
-      const left = snap.data().credits;
-      if (left <= 0) return alert("No credits left");
+      const left = snap.data().credits - 1;
+      await updateDoc(ref, { credits: left });
 
-      await updateDoc(ref, { credits: left - 1 });
-      creditsEl.textContent = left - 1;
-      toggleUseBtn();
+      document.getElementById("creditsLeft").innerText = left;
+      document.getElementById("useBtn").disabled = left <= 0;
     };
-
-    function toggleUseBtn() {
-      const c = Number(creditsEl.textContent);
-      useBtn.disabled = c <= 0;
-      useBtn.classList.toggle("opacity-50", c <= 0);
-      useBtn.classList.toggle("cursor-not-allowed", c <= 0);
-    }
   </script>
 
 </body>
