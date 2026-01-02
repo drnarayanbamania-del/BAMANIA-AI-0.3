@@ -9,9 +9,10 @@ interface SidebarProps {
   onClose: () => void;
   onClear: () => void;
   onDeleteItem: (id: string) => void;
+  currentId?: string;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ history, isOpen, onSelect, onClose, onClear, onDeleteItem }) => {
+const Sidebar: React.FC<SidebarProps> = ({ history, isOpen, onSelect, onClose, onClear, onDeleteItem, currentId }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredHistory = useMemo(() => {
@@ -41,7 +42,7 @@ const Sidebar: React.FC<SidebarProps> = ({ history, isOpen, onSelect, onClose, o
         <div className="p-6 border-b border-white/10 flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-               <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
+               <svg className="w-5 h-5 text-blue-500 logo-glow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
                <h2 className="text-xl font-bold tracking-tight text-white">Gallery</h2>
             </div>
             <div className="flex gap-3">
@@ -101,7 +102,7 @@ const Sidebar: React.FC<SidebarProps> = ({ history, isOpen, onSelect, onClose, o
               <div 
                 key={item.id}
                 onClick={() => onSelect(item)}
-                className="group relative cursor-pointer glass rounded-xl overflow-hidden hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300"
+                className={`group relative cursor-pointer glass rounded-xl overflow-hidden transition-all duration-300 ${item.id === currentId ? 'border-blue-500/60 shadow-lg shadow-blue-500/20 scale-[1.02] hover:scale-[1.03] hover:shadow-blue-500/30' : 'hover:border-blue-500/40 hover:shadow-lg hover:shadow-blue-500/10 hover:scale-[1.01]'}`}
               >
                 <img src={item.imageUrl} alt={item.prompt} className="w-full h-40 object-cover opacity-90 group-hover:opacity-100 transition-opacity" />
                 

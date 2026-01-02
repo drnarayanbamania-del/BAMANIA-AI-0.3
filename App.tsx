@@ -101,7 +101,40 @@ const App: React.FC = () => {
     setToasts(prev => [...prev, { id, message, type }]);
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
-    }, 3000);
+    }, 4500); // Slightly longer for error visibility
+  };
+
+  /**
+   * Helper to fetch an image with timeout and status checking
+   */
+  const verifyImage = async (url: string, timeoutMs: number = 40000): Promise<boolean> => {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      const response = await fetch(url, { signal: controller.signal });
+      clearTimeout(id);
+      
+      if (response.status === 429) {
+        showToast("Rate limit reached. Please wait a few seconds.", "error");
+        return false;
+      }
+      
+      if (!response.ok) {
+        showToast(`Engine Error (${response.status}): ${response.statusText}`, "error");
+        return false;
+      }
+      
+      return true;
+    } catch (err: any) {
+      clearTimeout(id);
+      if (err.name === 'AbortError') {
+        showToast("Request timed out. The creative engine is currently overloaded.", "error");
+      } else {
+        showToast("Network Error: Please check your internet connection.", "error");
+      }
+      return false;
+    }
   };
 
   const handleGenerate = useCallback(async (prompt: string, userSeed: number | undefined, resolution: Resolution) => {
@@ -115,29 +148,35 @@ const App: React.FC = () => {
     
     const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&seed=${finalSeed}&model=${model}&nologo=true`;
 
-    const newItem: HistoryItem = {
-      id: crypto.randomUUID(),
-      prompt,
-      imageUrl,
-      seed: finalSeed,
-      timestamp: Date.now(),
-      width,
-      height
-    };
+    // Robust verification before displaying
+    const isAvailable = await verifyImage(imageUrl);
+    
+    if (isAvailable) {
+      const newItem: HistoryItem = {
+        id: crypto.randomUUID(),
+        prompt,
+        imageUrl,
+        seed: finalSeed,
+        timestamp: Date.now(),
+        width,
+        height
+      };
 
-    const img = new Image();
-    img.src = imageUrl;
-    img.onload = () => {
-      setHistory(prev => [newItem, ...prev]);
-      setCurrentImage(newItem);
-      setLoadingProgress(100);
-      setTimeout(() => setIsLoading(false), 300);
-    };
-    img.onerror = () => {
-      console.error("Image load failed");
+      const img = new Image();
+      img.src = imageUrl;
+      img.onload = () => {
+        setHistory(prev => [newItem, ...prev]);
+        setCurrentImage(newItem);
+        setLoadingProgress(100);
+        setTimeout(() => setIsLoading(false), 300);
+      };
+      img.onerror = () => {
+        setIsLoading(false);
+        showToast("Image rendering failed. The link might have expired.", "error");
+      };
+    } else {
       setIsLoading(false);
-      showToast("Generation failed. Please try again.", "error");
-    };
+    }
   }, []);
 
   const handleCreateVariations = async () => {
@@ -164,25 +203,42 @@ const App: React.FC = () => {
         height
       };
       
-      const p = new Promise<HistoryItem>((resolve, reject) => {
+      const p = new Promise<HistoryItem | null>(async (resolve) => {
+        const isOk = await verifyImage(imageUrl, 60000); // Longer timeout for variations
+        if (!isOk) {
+          resolve(null);
+          return;
+        }
+
         const img = new Image();
         img.src = imageUrl;
         img.onload = () => resolve(variantItem);
-        img.onerror = () => reject();
+        img.onerror = () => resolve(null);
       });
       promises.push(p);
     }
 
     try {
       const results = await Promise.all(promises);
-      setVariations(results);
-      setHistory(prev => [...results, ...prev]);
-      setLoadingProgress(100);
+      const validResults = results.filter((item): item is HistoryItem => item !== null);
+      
+      if (validResults.length === 0) {
+        showToast("All variation attempts failed. Try a different seed.", "error");
+      } else if (validResults.length < 4) {
+        showToast(`Generated ${validResults.length} variations (some failed).`, "info");
+      }
+
+      if (validResults.length > 0) {
+        setVariations(validResults);
+        setHistory(prev => [...validResults, ...prev]);
+        setLoadingProgress(100);
+      }
+      
       setTimeout(() => setIsVariationsLoading(false), 300);
     } catch (error) {
-      console.error("Variations generation failed");
+      console.error("Variations generation failed", error);
       setIsVariationsLoading(false);
-      showToast("Variations failed. Please try again.", "error");
+      showToast("Variations generation encountered a critical error.", "error");
     }
   };
 
@@ -203,7 +259,7 @@ const App: React.FC = () => {
       showToast("Download started!");
     } catch (error) {
       console.error("Download failed", error);
-      showToast("Download failed.", "error");
+      showToast("Download failed. The file might no longer be available.", "error");
     }
   };
 
@@ -289,6 +345,7 @@ const App: React.FC = () => {
         onClose={() => setIsSidebarOpen(false)}
         onClear={() => setShowClearConfirm(true)}
         onDeleteItem={handleDeleteItem}
+        currentId={currentImage?.id}
       />
 
       <main className="flex-1 relative flex flex-col items-center justify-start p-4 lg:ml-80 transition-all overflow-y-auto custom-scrollbar pt-24 pb-32">
@@ -323,7 +380,7 @@ const App: React.FC = () => {
         {/* Display Area */}
         <div className="w-full max-w-4xl flex flex-col items-center gap-6 mt-8">
           <div 
-            className={`w-full aspect-square relative glass rounded-3xl overflow-hidden shadow-2xl transition-all duration-500 ${currentImage && !isLoading && !isVariationsLoading ? 'cursor-zoom-in' : ''}`}
+            className={`group w-full aspect-square relative glass rounded-3xl overflow-hidden shadow-2xl transition-all duration-500 ${currentImage && !isLoading && !isVariationsLoading ? 'cursor-zoom-in hover:scale-[1.01] hover:shadow-blue-500/10' : ''}`}
             onClick={() => currentImage && !isLoading && !isVariationsLoading && setIsZoomed(true)}
           >
             {/* Main Generation Loading State */}
@@ -387,7 +444,7 @@ const App: React.FC = () => {
             )}
             
             {currentImage && !isLoading && !isVariationsLoading && (
-              <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none">
+              <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none group-hover:from-black/95 transition-all">
                 <p className="text-white text-lg font-medium drop-shadow-lg line-clamp-2 italic">
                   "{currentImage.prompt}"
                 </p>
@@ -395,7 +452,7 @@ const App: React.FC = () => {
             )}
           </div>
 
-          {/* Action Button Bar Skeleton */}
+          {/* Action Button Bar */}
           {(currentImage || isLoading) && (
              <div className="flex flex-wrap items-center justify-center gap-3 w-full min-h-[50px]">
                {isLoading ? (
@@ -420,7 +477,7 @@ const App: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <button 
                         onClick={handleCreateVariations}
-                        className="flex items-center gap-2 px-5 py-2.5 glass rounded-full hover:bg-purple-500/20 transition-all font-medium border border-purple-500/20 group text-purple-200"
+                        className="flex items-center gap-2 px-5 py-2.5 glass rounded-full hover:bg-purple-500/20 hover:shadow-[0_0_15px_rgba(168,85,247,0.2)] transition-all font-medium border border-purple-500/20 group text-purple-200"
                       >
                         <svg className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" /></svg>
                         <span>Variations</span>
@@ -428,7 +485,7 @@ const App: React.FC = () => {
 
                       <button 
                         onClick={handleDownload}
-                        className="flex items-center gap-2 px-5 py-2.5 glass rounded-full hover:bg-white/10 transition-all font-medium border border-white/10 group"
+                        className="flex items-center gap-2 px-5 py-2.5 glass rounded-full hover:bg-white/10 hover:shadow-white/5 transition-all font-medium border border-white/10 group"
                       >
                         <svg className="w-5 h-5 group-hover:translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                         <span>Download</span>
@@ -436,7 +493,7 @@ const App: React.FC = () => {
                       
                       <button 
                         onClick={handleShare}
-                        className="flex items-center gap-2 px-5 py-2.5 glass rounded-full hover:bg-white/10 transition-all font-medium border border-white/10 group"
+                        className="flex items-center gap-2 px-5 py-2.5 glass rounded-full hover:bg-white/10 hover:shadow-white/5 transition-all font-medium border border-white/10 group"
                       >
                         <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6a3 3 0 100-2.684m0 2.684l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
                         <span>Share</span>
@@ -479,7 +536,7 @@ const App: React.FC = () => {
                     <div 
                       key={v.id}
                       onClick={() => handleSelectVariation(v)}
-                      className={`group relative aspect-square glass rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:scale-105 hover:ring-2 hover:ring-purple-500/50 ${currentImage?.id === v.id ? 'ring-2 ring-purple-500 shadow-lg shadow-purple-500/20' : ''}`}
+                      className={`group relative aspect-square glass rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:scale-105 hover:ring-2 hover:ring-purple-500/50 hover:shadow-xl hover:shadow-purple-500/10 ${currentImage?.id === v.id ? 'ring-2 ring-purple-500 shadow-2xl shadow-purple-500/20 scale-[1.02]' : ''}`}
                     >
                       <img src={v.imageUrl} alt="Variation" className="w-full h-full object-cover" />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
