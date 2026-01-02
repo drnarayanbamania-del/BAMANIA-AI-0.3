@@ -19,7 +19,7 @@ export const enhancePrompt = async (originalPrompt: string): Promise<string> => 
   try {
     const ai = getAI();
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3-flash-preview',
       contents: `You are a professional prompt engineer for Bamania AI. 
       Your task is to take a simple prompt and transform it into a high-detail, artistic masterpiece description optimized for a Flux-based image generator.
       
