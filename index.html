@@ -1,109 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Bamania AI</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <title>Bamania AI – Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-
-<body class="min-h-screen flex items-center justify-center bg-slate-900 text-white">
-
-  <div class="bg-slate-800 p-6 rounded-xl w-80 text-center shadow-lg">
-    <h1 class="text-3xl font-bold mb-2">BAMANIA AI</h1>
-    <p id="status" class="text-sm text-gray-400 mb-4">Offline Mode · Guest</p>
-
-    <button
-      onclick="googleLogin()"
-      class="w-full bg-blue-500 hover:bg-blue-600 py-2 rounded mb-3"
-    >
-      Login with Google
-    </button>
-
-    <p class="mb-2">Credits Left: <span id="creditsLeft">0</span></p>
-
-    <button
-      onclick="useCredit()"
-      id="useBtn"
-      disabled
-      class="w-full bg-red-500 opacity-50 py-2 rounded"
-    >
-      Use Credit
-    </button>
-  </div>
-
-  <!-- 🔥 FIREBASE SDKs (CDN BASED) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import {
+      getAuth,
+      GoogleAuthProvider,
+      signInWithRedirect,
+      getRedirectResult
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    // ✅ CORRECT FIREBASE CONFIG
+    // 🔑 Firebase Config (tumhara)
     const firebaseConfig = {
       apiKey: "AIzaSyBl12az1gQpxM3lObk9DH7iqSGsHDLb5jM",
       authDomain: "bamania-ai-0-3.firebaseapp.com",
       projectId: "bamania-ai-0-3",
-      storageBucket: "bamania-ai-0-3.appspot.com",
+      storageBucket: "bamania-ai-0-3.firebasestorage.app",
       messagingSenderId: "41766120360",
-      appId: "1:41766120360:web:98516eccfbba9a8b854b9d",
+      appId: "1:41766120360:web:98516eccfbba9a8b854b9d"
     };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
 
-    // 🔑 GOOGLE LOGIN
-    window.googleLogin = async () => {
-      try {
-        await signInWithPopup(auth, provider);
-      } catch (err) {
-        alert("Login failed: " + err.message);
-      }
+    // ✅ Redirect ke baad result handle
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result && result.user) {
+          window.location.href = "dashboard.html";
+        }
+      })
+      .catch((error) => {
+        alert("Login Error: " + error.message);
+      });
+
+    // ✅ Login function
+    window.loginWithGoogle = function () {
+      signInWithRedirect(auth, provider);
     };
-
-    // 🔄 AUTH STATE
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) return;
-
-      document.getElementById("status").innerText = "Logged in as " + user.email;
-
-      const ref = doc(db, "users", user.uid);
-      const snap = await getDoc(ref);
-
-      // 🆕 NEW USER → GIVE 8 CREDITS
-      if (!snap.exists()) {
-        await setDoc(ref, { credits: 8 });
-        updateUI(8);
-      } else {
-        updateUI(snap.data().credits);
-      }
-    });
-
-    // ➖ USE CREDIT
-    window.useCredit = async () => {
-      const user = auth.currentUser;
-      if (!user) return alert("Login first");
-
-      const ref = doc(db, "users", user.uid);
-      const snap = await getDoc(ref);
-
-      let credits = snap.data().credits;
-      if (credits <= 0) return alert("No credits left");
-
-      credits--;
-      await updateDoc(ref, { credits });
-      updateUI(credits);
-    };
-
-    function updateUI(c) {
-      document.getElementById("creditsLeft").innerText = c;
-      const btn = document.getElementById("useBtn");
-      btn.disabled = c <= 0;
-      btn.classList.toggle("opacity-50", c <= 0);
-    }
   </script>
+
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: #020617;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: Arial, sans-serif;
+      color: white;
+    }
+    .box {
+      background: rgba(255,255,255,0.06);
+      padding: 30px;
+      border-radius: 14px;
+      text-align: center;
+      width: 320px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      background: #2563eb;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="box">
+    <h2>BAMANIA AI</h2>
+    <p>Login with Google</p>
+    <button onclick="loginWithGoogle()">Login with Google</button>
+  </div>
 
 </body>
 </html>
