@@ -1,47 +1,95 @@
-<style>
-body {
-    font-family: 'Inter', sans-serif;
-    background-color: #030712;
-    color: #f9fafb;
-    margin: 0;
-    overflow-x: hidden;
-}
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bamania AI</title>
 
-/* GLASS */
-.glass {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><filter id='glow'><feGaussianBlur stdDeviation='5' result='coloredBlur'/><feMerge><feMergeNode in='coloredBlur'/><feMergeNode in='SourceGraphic'/></feMerge></filter></defs><linearGradient id='grad' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%2360a5fa'/><stop offset='100%' stop-color='%232563eb'/></linearGradient><circle cx='50' cy='50' r='40' fill='url(%23grad)' filter='url(%23glow)'/></svg>" />
 
-.glass-dark {
-    background: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-}
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
-/* 🔥 HERO CENTER FIX */
-.hero-wrapper {
-    width: 100%;
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+  <!-- Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-.hero {
-    width: 100%;
-    max-width: 1100px;
-    margin: 0 auto;
-    text-align: center;
-}
+  <!-- CUSTOM CSS -->
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #030712;
+      color: #f9fafb;
+      margin: 0;
+      overflow-x: hidden;
+    }
 
-.logo-gradient {
-    background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 0 8px rgba(37, 99, 235, 0.6));
-}
-</style>
+    /* GLASS */
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* LOGO TEXT */
+    .logo-gradient {
+      background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.8));
+    }
+
+    /* 🔥 APP HERO CENTER OVERLAY */
+    .app-hero-overlay {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    .app-hero-card {
+      padding: 2.5rem 3.5rem;
+      text-align: center;
+      border-radius: 1rem;
+      animation: fadeOut 3s ease forwards;
+      animation-delay: 2.5s;
+    }
+
+    @keyframes fadeOut {
+      to {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- 🔥 CENTER HERO BRANDING -->
+  <div class="app-hero-overlay">
+    <div class="app-hero-card glass">
+      <h1 class="text-5xl font-bold logo-gradient">
+        BAMANIA AI
+      </h1>
+      <p class="mt-3 text-sm text-gray-300">
+        Offline Mode · Est. ID: Saitera
+      </p>
+    </div>
+  </div>
+
+  <!-- REACT ROOT -->
+  <div id="root"></div>
+
+  <!-- REACT ENTRY -->
+  <script type="module" src="/index.tsx"></script>
+
+</body>
+</html>
