@@ -302,13 +302,13 @@ const App: React.FC = () => {
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
             </button>
             <div className="flex flex-col">
-              <h1 onClick={() => setView('landing')} className="text-2xl font-black tracking-tighter cursor-pointer hover:opacity-80 transition-opacity flex items-center gap-2">
-                <SparkleIcon className="text-blue-500 logo-glow" />
+              <h1 onClick={() => setView('landing')} className="text-2xl font-black tracking-tighter cursor-pointer hover:opacity-80 transition-opacity flex items-center gap-2 whitespace-nowrap">
+                <SparkleIcon className="text-blue-500 logo-glow flex-shrink-0" />
                 <span className="logo-gradient">BAMANIA AI</span>
               </h1>
-              <div className="flex items-center gap-2 mt-1 px-1">
+              <div className="flex items-center gap-2 mt-1 px-1 whitespace-nowrap">
                 <div 
-                  className={`w-2 h-2 rounded-full animate-pulse ${apiReady ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]'}`}
+                  className={`w-2 h-2 rounded-full animate-pulse flex-shrink-0 ${apiReady ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]'}`}
                 ></div>
                 <span className="text-[10px] font-bold tracking-widest text-gray-500 uppercase flex items-center gap-2">
                   <span>{apiReady ? 'Neural Link Active' : 'Offline Mode'}</span>

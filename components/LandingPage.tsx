@@ -22,12 +22,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
         </div>
 
         <div className="relative z-10 max-w-4xl flex flex-col items-center">
-          <div className="flex items-center gap-4 mb-2 animate-pulse">
-            <SparkleIcon className="w-12 h-12 text-blue-500 logo-glow" />
+          <div className="flex items-center gap-4 mb-2 animate-pulse whitespace-nowrap">
+            <SparkleIcon className="w-12 h-12 text-blue-500 logo-glow flex-shrink-0" />
             <span className="text-xl font-bold tracking-[0.2em] logo-gradient uppercase">Bamania AI</span>
-            <SparkleIcon className="w-12 h-12 text-blue-500 logo-glow" />
+            <SparkleIcon className="w-12 h-12 text-blue-500 logo-glow flex-shrink-0" />
           </div>
-          <div className="mb-6">
+          <div className="mb-6 whitespace-nowrap">
             <span className="text-[10px] font-mono font-bold tracking-[0.5em] text-gray-500 uppercase">EST. ID: SATERA</span>
           </div>
           <h1 className="text-6xl md:text-8xl font-bold mb-6 tracking-tight leading-none">
@@ -97,11 +97,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
 
       {/* Footer */}
       <footer className="py-12 border-t border-white/5 text-center text-gray-500">
-        <div className="flex items-center justify-center gap-2 mb-4">
-          <SparkleIcon className="w-5 h-5 text-blue-500 logo-glow" />
+        <div className="flex items-center justify-center gap-2 mb-4 whitespace-nowrap">
+          <SparkleIcon className="w-5 h-5 text-blue-500 logo-glow flex-shrink-0" />
           <span className="font-bold logo-gradient">BAMANIA AI</span>
         </div>
-        <div className="mb-4">
+        <div className="mb-4 whitespace-nowrap">
           <span className="text-[10px] font-mono tracking-widest text-gray-600 uppercase">ESTABLISHED | ID: SATERA</span>
         </div>
         <p>&copy; 2024 Bamania AI. Powered by Gemini & Pollinations.</p>
