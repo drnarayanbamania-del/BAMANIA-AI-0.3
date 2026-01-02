@@ -22,23 +22,26 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
         </div>
 
         <div className="relative z-10 max-w-4xl flex flex-col items-center">
-          <div className="flex items-center gap-4 mb-6 animate-pulse">
-            <SparkleIcon className="w-12 h-12 text-yellow-400" />
-            <span className="text-xl font-bold tracking-widest text-blue-400 uppercase">Bamania AI</span>
-            <SparkleIcon className="w-12 h-12 text-yellow-400" />
+          <div className="flex items-center gap-4 mb-2 animate-pulse">
+            <SparkleIcon className="w-12 h-12 text-blue-500 logo-glow" />
+            <span className="text-xl font-bold tracking-[0.2em] logo-gradient uppercase">Bamania AI</span>
+            <SparkleIcon className="w-12 h-12 text-blue-500 logo-glow" />
+          </div>
+          <div className="mb-6">
+            <span className="text-[10px] font-mono font-bold tracking-[0.5em] text-gray-500 uppercase">EST. ID: SATERA</span>
           </div>
           <h1 className="text-6xl md:text-8xl font-bold mb-6 tracking-tight leading-none">
-            Your Creative <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">Universe</span>
+            Your Creative <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-blue-600 to-indigo-600 logo-glow">Universe</span>
           </h1>
           <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
             Harness the power of Bamania AI to transform your wildest thoughts into stunning visual masterpieces.
           </p>
           <button 
             onClick={onEnter}
-            className="px-10 py-5 bg-white text-black font-bold rounded-full hover:scale-105 transition-all duration-300 shadow-xl shadow-white/10 flex items-center gap-3"
+            className="px-10 py-5 bg-white text-black font-bold rounded-full hover:scale-105 transition-all duration-300 shadow-xl shadow-blue-500/20 flex items-center gap-3 border border-blue-100"
           >
             Launch Bamania AI
-            <SparkleIcon className="w-5 h-5" />
+            <SparkleIcon className="w-5 h-5 text-blue-600" />
           </button>
         </div>
       </section>
@@ -82,7 +85,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
             <a href="#" className="text-white underline font-medium">Read Article</a>
           </div>
           <div className="glass p-8 rounded-3xl">
-            <span className="text-purple-400 text-sm font-bold uppercase tracking-widest mb-4 block">Technology</span>
+            <span className="text-blue-600 text-sm font-bold uppercase tracking-widest mb-4 block">Technology</span>
             <h3 className="text-2xl font-bold mb-4">The Latent Space</h3>
             <p className="text-gray-400 leading-relaxed mb-6">
               Discover how Bamania AI opens up billions of creative possibilities across different models and artistic styles.
@@ -95,8 +98,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
       {/* Footer */}
       <footer className="py-12 border-t border-white/5 text-center text-gray-500">
         <div className="flex items-center justify-center gap-2 mb-4">
-          <SparkleIcon className="w-5 h-5 text-yellow-400" />
-          <span className="font-bold">BAMANIA AI</span>
+          <SparkleIcon className="w-5 h-5 text-blue-500 logo-glow" />
+          <span className="font-bold logo-gradient">BAMANIA AI</span>
+        </div>
+        <div className="mb-4">
+          <span className="text-[10px] font-mono tracking-widest text-gray-600 uppercase">ESTABLISHED | ID: SATERA</span>
         </div>
         <p>&copy; 2024 Bamania AI. Powered by Gemini & Pollinations.</p>
       </footer>

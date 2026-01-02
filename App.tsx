@@ -303,15 +303,17 @@ const App: React.FC = () => {
             </button>
             <div className="flex flex-col">
               <h1 onClick={() => setView('landing')} className="text-2xl font-black tracking-tighter cursor-pointer hover:opacity-80 transition-opacity flex items-center gap-2">
-                <SparkleIcon className="text-yellow-400" />
-                BAMANIA AI
+                <SparkleIcon className="text-blue-500 logo-glow" />
+                <span className="logo-gradient">BAMANIA AI</span>
               </h1>
               <div className="flex items-center gap-2 mt-1 px-1">
                 <div 
                   className={`w-2 h-2 rounded-full animate-pulse ${apiReady ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]'}`}
                 ></div>
-                <span className="text-[10px] font-bold tracking-widest text-gray-500 uppercase">
-                  {apiReady ? 'Neural Link Active' : 'Offline Mode'}
+                <span className="text-[10px] font-bold tracking-widest text-gray-500 uppercase flex items-center gap-2">
+                  <span>{apiReady ? 'Neural Link Active' : 'Offline Mode'}</span>
+                  <span className="opacity-30">|</span>
+                  <span className="text-blue-400/80 font-mono">EST. ID: SATERA</span>
                 </span>
               </div>
             </div>
@@ -376,7 +378,7 @@ const App: React.FC = () => {
               !isLoading && (
                 <div className="h-full flex flex-col items-center justify-center text-center p-12 space-y-4">
                   <div className="w-20 h-20 glass rounded-full flex items-center justify-center animate-bounce-slow">
-                    <SparkleIcon className="w-10 h-10 text-yellow-400" />
+                    <SparkleIcon className="w-10 h-10 text-blue-500 logo-glow" />
                   </div>
                   <h2 className="text-3xl font-bold tracking-tight">Visualize Your Future</h2>
                   <p className="text-gray-400 max-w-md">Bamania AI is ready. Describe your vision and let the Gemini-powered engine work its magic.</p>
