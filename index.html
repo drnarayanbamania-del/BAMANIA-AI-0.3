@@ -56,89 +56,9 @@
   </div>
 
   <!-- FIREBASE LOGIC -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import {
-      getAuth,
-      GoogleAuthProvider,
-      signInWithPopup,
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import {
-      getFirestore,
-      doc,
-      getDoc,
-      setDoc,
-      updateDoc
-    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyB112az1gQpxM310bk9DH7iqSGsHDLb5jM",
-      authDomain: "bamania-ai-0-3.firebaseapp.com",
-      projectId: "bamania-ai-0-3",
-      storageBucket: "bamania-ai-0-3.appspot.com",
-      messagingSenderId: "41766120360",
-      appId: "1:41766120360:web:98516eccfbba9a8b854b9d"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    const creditsEl = document.getElementById("creditsLeft");
-    const statusEl = document.getElementById("statusText");
-    const useBtn = document.getElementById("useBtn");
-
-    window.googleLogin = async () => {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-    };
-
-    async function loadCredits(uid) {
-      const ref = doc(db, "users", uid);
-      const snap = await getDoc(ref);
-
-      if (!snap.exists()) {
-        await setDoc(ref, { credits: 5 });
-        updateUI(5);
-      } else {
-        updateUI(snap.data().credits);
-      }
-    }
-
-    window.useCredit = async () => {
-      const user = auth.currentUser;
-      if (!user) return;
-
-      const ref = doc(db, "users", user.uid);
-      const snap = await getDoc(ref);
-      const current = snap.data().credits;
-
-      if (current <= 0) return;
-
-      const left = current - 1;
-      await updateDoc(ref, { credits: left });
-      updateUI(left);
-    };
-
-    function updateUI(c) {
-      creditsEl.innerText = c;
-      if (c > 0) {
-        useBtn.disabled = false;
-        useBtn.classList.remove("opacity-40","cursor-not-allowed");
-      } else {
-        useBtn.disabled = true;
-        useBtn.classList.add("opacity-40","cursor-not-allowed");
-      }
-    }
-
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        statusEl.innerText = "Online Mode · " + user.email;
-        loadCredits(user.uid);
-      }
-    });
-  </script>
+<button onclick="googleLogin()">
+  Login with Google
+</button>
 
 </body>
 </html>
