@@ -17,7 +17,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-  <!-- CUSTOM CSS -->
   <style>
     body {
       font-family: 'Inter', sans-serif;
@@ -26,24 +25,17 @@
       margin: 0;
       overflow-x: hidden;
     }
-
-    /* GLASS */
     .glass {
       background: rgba(255, 255, 255, 0.05);
       backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
-
-    /* LOGO TEXT */
     .logo-gradient {
-      background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
+      background: linear-gradient(135deg, #60a5fa, #2563eb);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.8));
+      filter: drop-shadow(0 0 10px rgba(59,130,246,.8));
     }
-
-    /* 🔥 APP HERO CENTER OVERLAY */
     .app-hero-overlay {
       position: fixed;
       inset: 0;
@@ -53,102 +45,50 @@
       pointer-events: none;
       z-index: 999;
     }
-
     .app-hero-card {
       padding: 2.5rem 3.5rem;
-      text-align: center;
       border-radius: 1rem;
       animation: fadeOut 3s ease forwards;
       animation-delay: 2.5s;
     }
-
     @keyframes fadeOut {
-      to {
-        opacity: 0;
-        transform: scale(0.95);
-      }
+      to { opacity: 0; transform: scale(.95); }
     }
   </style>
 </head>
+
 <body>
 
-  <!-- 🔥 CENTER HERO BRANDING -->
-  <div class="app-hero-overlay">
-    <div class="app-hero-card glass">
-      <h1 class="text-5xl font-bold logo-gradient">
-        BAMANIA AI
-      </h1>
-      <p class="mt-3 text-sm text-gray-300">
-        Offline Mode · Est. ID: Saitera
-      </p>
-    </div>
+<!-- HERO -->
+<div class="app-hero-overlay">
+  <div class="app-hero-card glass text-center">
+    <h1 class="text-5xl font-bold logo-gradient">BAMANIA AI</h1>
+    <p class="mt-3 text-sm text-gray-300">Offline Mode · Est. ID: Saitera</p>
   </div>
+</div>
 
-  <!-- REACT ROOT -->
-  <div id="root"></div>
+<!-- UI -->
+<div class="p-6 text-center">
+  <button onclick="googleLogin()" class="px-6 py-2 bg-blue-600 rounded">
+    Login with Google
+  </button>
 
-  <!-- REACT ENTRY -->
-/* 🔥 FIREBASE CONFIG */
-const firebaseConfig = {
-  apiKey: "AIzaSyB112az1gQpxM310bk9DH7iqSGsHDLb5jM",
-  authDomain: "bamania-ai-0-3.firebaseapp.com",
-  projectId: "bamania-ai-0-3",
-  storageBucket: "bamania-ai-0-3.appspot.com",
-  messagingSenderId: "41766120360",
-  appId: "1:41766120360:web:98516eccfbba9a8b854b9d",
-};
+  <p class="mt-4">Credits Left: <span id="creditsLeft">0</span></p>
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+  <button onclick="useCredit()" class="mt-3 px-6 py-2 bg-red-600 rounded">
+    Use Credit
+  </button>
+</div>
 
-/* 🔐 GOOGLE LOGIN */
-window.googleLogin = async () => {
-  const provider = new GoogleAuthProvider();
-  const result = await signInWithPopup(auth, provider);
-  localStorage.setItem("uid", result.user.uid);
-};
+<!-- 🔥 FIREBASE + LOGIC -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* 🎟️ LOAD CREDITS */
-async function loadCredits(uid) {
-  const ref = doc(db, "users", uid);
-  const snap = await getDoc(ref);
-
-  if (!snap.exists()) {
-    await setDoc(ref, { credits: 5 });
-    updateCreditsUI(5);
-  } else {
-    updateCreditsUI(snap.data().credits);
-  }
-}
-
-/* ➖ USE CREDIT */
-window.useCredit = async () => {
-  const uid = localStorage.getItem("uid");
-  const ref = doc(db, "users", uid);
-  const snap = await getDoc(ref);
-
-  if (!snap.exists() || snap.data().credits <= 0) {
-    alert("❌ Credits finished");
-    return false;
-  }
-
-  const left = snap.data().credits - 1;
-  await updateDoc(ref, { credits: left });
-  updateCreditsUI(left);
-  return true;
-};
-
-/* 👀 LOGIN STATE */
-onAuthStateChanged(auth, (user) => {
-  if (user) loadCredits(user.uid);
-});
-
-/* UI helper */
-function updateCreditsUI(c) {
-  const el = document.getElementById("creditsLeft");
-  if (el) el.innerText = c;
-}
-</script>
-</body>
-</html>
+  const firebaseConfig = {
+    apiKey: "AIzaSyB112az1gQpxM310bk9DH7iqSGsHDLb5jM",
+    authDomain: "bamania-ai-0-3.firebaseapp.com",
+    projectId: "bamania-ai-0-3",
+    storageBucket: "bamania-ai-0-3.appspot.com",
+    messagingSende
