@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bamania AI</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><filter id='glow'><feGaussianBlur stdDeviation='5' result='coloredBlur'/><feMerge><feMergeNode in='coloredBlur'/><feMergeNode in='SourceGraphic'/></feMerge></filter></defs><circle cx='50' cy='50' r='40' fill='url(%23grad)' filter='url(%23glow)'/><linearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' style='stop-color:%233b82f6;stop-opacity:1' /><stop offset='100%25' style='stop-color:%231d4ed8;stop-opacity:1' /></linearGradient></svg>">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><filter id='glow'><feGaussianBlur stdDeviation='6' result='coloredBlur'/><feMerge><feMergeNode in='coloredBlur'/><feMergeNode in='SourceGraphic'/></feMerge></filter></defs><circle cx='50' cy='50' r='35' fill='url(%23grad)' filter='url(%23glow)'/><linearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' style='stop-color:%233b82f6;stop-opacity:1' /><stop offset='100%25' style='stop-color:%231e40af;stop-opacity:1' /></linearGradient></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -41,13 +41,13 @@
             animation: shimmer 1.5s infinite;
         }
         .logo-gradient {
-            background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1e40af 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 8px rgba(37, 99, 235, 0.6));
+            filter: drop-shadow(0 0 10px rgba(37, 99, 235, 0.4));
         }
         .logo-glow {
-            filter: drop-shadow(0 0 12px rgba(59, 130, 246, 0.8));
+            filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.9));
         }
         @keyframes shimmer {
             0% { background-position: -200% 0; }

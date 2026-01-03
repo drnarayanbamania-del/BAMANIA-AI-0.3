@@ -137,9 +137,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
           <div className="mb-12">
             <div className="relative mb-6 flex justify-center">
               <div className="absolute inset-0 bg-blue-500/20 blur-3xl rounded-full scale-150"></div>
-              <SparkleIcon className="w-24 h-24 text-blue-500 logo-glow relative z-10" />
+              <SparkleIcon className="w-24 h-24 text-blue-500 logo-glow relative z-10 shrink-0" />
             </div>
-            <h2 className="text-3xl font-black tracking-[0.6em] logo-gradient uppercase mb-2">Bamania AI</h2>
+            <h2 className="text-3xl font-black tracking-[0.6em] logo-gradient uppercase mb-2 whitespace-nowrap">Bamania AI</h2>
             <p className="text-[11px] font-mono font-bold tracking-[0.5em] text-blue-400/60 uppercase">Neural Synthesis Engine v2.5</p>
           </div>
 

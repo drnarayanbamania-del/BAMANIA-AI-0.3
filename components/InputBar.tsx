@@ -1,12 +1,13 @@
 
-import React, { useState, useImperativeHandle, forwardRef } from 'react';
-import { Resolution } from '../types';
+import React, { useState, useImperativeHandle, forwardRef, useEffect } from 'react';
+import { Resolution, SavedPrompt } from '../types';
 
 interface InputBarProps {
   onGenerate: (prompt: string, seed: number | undefined, resolution: Resolution) => void;
   onEnhance: (currentPrompt: string) => Promise<string>;
   isLoading: boolean;
   credits: number;
+  currentUser: string;
 }
 
 export interface InputBarHandle {
@@ -18,11 +19,25 @@ const MIN_SEED = 0;
 
 const RESOLUTIONS: Resolution[] = ['512x512', '1024x1024', '1536x1536'];
 
-const InputBar = forwardRef<InputBarHandle, InputBarProps>(({ onGenerate, onEnhance, isLoading, credits }, ref) => {
+const InputBar = forwardRef<InputBarHandle, InputBarProps>(({ onGenerate, onEnhance, isLoading, credits, currentUser }, ref) => {
   const [prompt, setPrompt] = useState('');
   const [seed, setSeed] = useState<string>('');
   const [resolution, setResolution] = useState<Resolution>('1024x1024');
   const [isEnhancing, setIsEnhancing] = useState(false);
+  const [showLibrary, setShowLibrary] = useState(false);
+  const [savedPrompts, setSavedPrompts] = useState<SavedPrompt[]>([]);
+
+  // Load saved prompts on mount or user change
+  useEffect(() => {
+    const saved = localStorage.getItem(`bamania_saved_${currentUser}`);
+    if (saved) {
+      try {
+        setSavedPrompts(JSON.parse(saved));
+      } catch (e) {
+        console.error("Failed to parse saved prompts");
+      }
+    }
+  }, [currentUser]);
 
   useImperativeHandle(ref, () => ({
     setPromptAndSeed: (p: string, s: number) => {
@@ -60,10 +75,86 @@ const InputBar = forwardRef<InputBarHandle, InputBarProps>(({ onGenerate, onEnha
     setIsEnhancing(false);
   };
 
+  const handleSavePrompt = () => {
+    if (!prompt.trim()) return;
+    
+    const newSaved: SavedPrompt = {
+      id: crypto.randomUUID(),
+      prompt,
+      seed,
+      resolution,
+      timestamp: Date.now()
+    };
+
+    const updated = [newSaved, ...savedPrompts];
+    setSavedPrompts(updated);
+    localStorage.setItem(`bamania_saved_${currentUser}`, JSON.stringify(updated));
+    
+    // Minimalistic visual confirmation could be handled by a toast in App.tsx 
+    // but here we just toggle library to show it's there or just close any open ones.
+    setShowLibrary(true);
+  };
+
+  const handleDeleteSaved = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const updated = savedPrompts.filter(p => p.id !== id);
+    setSavedPrompts(updated);
+    localStorage.setItem(`bamania_saved_${currentUser}`, JSON.stringify(updated));
+  };
+
+  const handleLoadSaved = (saved: SavedPrompt) => {
+    setPrompt(saved.prompt);
+    setSeed(saved.seed);
+    setResolution(saved.resolution);
+    setShowLibrary(false);
+  };
+
   const isOutOfCredits = credits <= 0;
 
   return (
     <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-full max-w-5xl px-4 z-50 animate-in slide-in-from-bottom-8 duration-700">
+      
+      {/* Saved Prompts Library Popover */}
+      {showLibrary && (
+        <div className="absolute bottom-full left-0 right-0 mb-4 px-4 animate-in slide-in-from-bottom-4 fade-in duration-300">
+          <div className="glass max-h-64 overflow-y-auto rounded-3xl p-4 shadow-2xl border border-white/10 custom-scrollbar">
+            <div className="flex justify-between items-center mb-4 px-2">
+              <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500">Neural Archives</h4>
+              <button onClick={() => setShowLibrary(false)} className="text-gray-500 hover:text-white transition-colors">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            {savedPrompts.length === 0 ? (
+              <p className="text-[10px] text-gray-600 uppercase text-center py-8 font-bold tracking-widest">Archive Empty</p>
+            ) : (
+              <div className="grid grid-cols-1 gap-2">
+                {savedPrompts.map((saved) => (
+                  <div 
+                    key={saved.id} 
+                    onClick={() => handleLoadSaved(saved)}
+                    className="group flex items-center gap-4 p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 cursor-pointer transition-all"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-white font-medium truncate italic">"{saved.prompt}"</p>
+                      <div className="flex gap-3 mt-1">
+                        <span className="text-[8px] font-black text-gray-500 uppercase">{saved.resolution}</span>
+                        {saved.seed && <span className="text-[8px] font-black text-blue-500/50 uppercase">SEED: {saved.seed}</span>}
+                      </div>
+                    </div>
+                    <button 
+                      onClick={(e) => handleDeleteSaved(saved.id, e)}
+                      className="p-2 opacity-0 group-hover:opacity-100 hover:text-red-500 transition-all"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col gap-2">
         <form 
           onSubmit={handleSubmit}
@@ -115,6 +206,7 @@ const InputBar = forwardRef<InputBarHandle, InputBarProps>(({ onGenerate, onEnha
             <button
               type="button"
               onClick={handleEnhance}
+              title="Magic Enhance"
               disabled={!prompt.trim() || isEnhancing || isLoading || isOutOfCredits}
               className={`flex items-center justify-center p-3 rounded-xl transition-all duration-300 disabled:opacity-50 group relative shadow-inner overflow-hidden ${
                 isEnhancing 
@@ -129,6 +221,29 @@ const InputBar = forwardRef<InputBarHandle, InputBarProps>(({ onGenerate, onEnha
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               )}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleSavePrompt}
+              title="Save Prompt to Library"
+              disabled={!prompt.trim() || isLoading || isEnhancing}
+              className="flex items-center justify-center p-3 rounded-xl bg-white/5 hover:bg-white/10 text-white hover:scale-110 transition-all group"
+            >
+              <svg className="w-5 h-5 text-blue-400 group-hover:scale-125 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              </svg>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowLibrary(!showLibrary)}
+              title="Prompt Library"
+              className={`flex items-center justify-center p-3 rounded-xl transition-all group ${showLibrary ? 'bg-blue-500/20 text-blue-400' : 'bg-white/5 hover:bg-white/10 text-white'}`}
+            >
+              <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+              </svg>
             </button>
 
             <button
