@@ -9,35 +9,28 @@ export const enhancePrompt = async (originalPrompt: string): Promise<string> => 
   const apiKey = process.env.API_KEY;
   
   if (!apiKey) {
-    console.warn("Gemini API Key not found. Using local fallback enhancement.");
-    return `${originalPrompt}, masterpiece, highly detailed, 8k, cinematic lighting, ultra-realistic textures`;
+    return `${originalPrompt}, masterpiece, high detail, 8k, cinematic`;
   }
 
   try {
     const ai = new GoogleGenAI({ apiKey });
     
-    // Using gemini-3-flash-preview for high-quality text-to-prompt expansion
+    // Using gemini-3-flash-preview for the highest quality prompt expansion
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `You are a professional prompt engineer for Bamania AI. 
-      Transform this simple prompt into a hyper-detailed, artistic visual protocol for an image generator.
-      
-      Original: ${originalPrompt}
-      
-      Requirements:
-      1. Atmospheric lighting (volumetric, cinematic, neon, or golden hour).
-      2. Specific artistic medium (hyper-realistic, octane render, oil painting, etc.).
-      3. Sensory details and texture keywords (intricate, 8k, masterwork).
-      4. Elevate the concept while keeping the core subject.
-      5. Return ONLY the final enhanced string. No meta-talk.`,
+      contents: `Transform the following short concept into a vivid, hyper-detailed artistic prompt for an image generator. 
+      Focus on lighting, texture, and artistic medium. 
+      Subject: ${originalPrompt}. 
+      Return ONLY the expanded prompt text.`,
     });
     
+    // Strictly use .text property as per guidelines
     const enhancedText = response.text;
-    if (!enhancedText) throw new Error("Empty response from Gemini");
+    if (!enhancedText) throw new Error("Empty neural response");
     
     return enhancedText.trim();
   } catch (error) {
-    console.error("Gemini 3 enhancement failure:", error);
-    return `${originalPrompt}, highly detailed masterpiece, cinematic lighting, 8k resolution`;
+    console.error("Prompt expansion failure:", error);
+    return `${originalPrompt}, ultra detailed, cinematic masterpiece, 8k`;
   }
 };

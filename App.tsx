@@ -20,9 +20,15 @@ const BoltIcon = ({ className = "w-4 h-4" }) => (
   </svg>
 );
 
+const HomeIcon = ({ className = "w-5 h-5" }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+  </svg>
+);
+
 const WhatsAppIcon = ({ className = "w-5 h-5" }) => (
   <svg className={className} fill="currentColor" viewBox="0 0 24 24">
-    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.438 9.889-9.886.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.894 4.44-9.897 9.887-.001 2.155.593 4.256 1.72 6.038l-1.102 4.025 4.149-1.087zm11.646-7.391c-.301-.15-1.78-.879-2.056-.979-.275-.1-.475-.15-.675.15-.199.3-.775.979-.95 1.179-.175.199-.349.225-.65.075-.301-.15-1.27-.467-2.42-1.493-.894-.797-1.496-1.782-1.672-2.081-.175-.3-.019-.462.131-.611.135-.134.301-.351.45-.525.15-.175.199-.3.3-.5.1-.199.05-.374-.025-.525-.075-.15-.675-1.625-.925-2.225-.244-.589-.491-.51-.675-.519-.174-.009-.374-.01-.574-.01s-.525.075-.8.375c-.275.3-1.05 1.025-1.05 2.5s1.075 2.925 1.225 3.125c.15.199 2.113 3.227 5.118 4.524.714.309 1.273.493 1.708.632.717.228 1.369.196 1.885.119.574-.085 1.78-.727 2.03-1.43.25-.702.25-1.303.175-1.43-.075-.127-.275-.226-.575-.376z"/>
+    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338-11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.438 9.889-9.886.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.894 4.44-9.897 9.887-.001 2.155.593 4.256 1.72 6.038l-1.102 4.025 4.149-1.087zm11.646-7.391c-.301-.15-1.78-.879-2.056-.979-.275-.1-.475-.15-.675.15-.199.3-.775.979-.95 1.179-.175.199-.349.225-.65.075-.301-.15-1.27-.467-2.42-1.493-.894-.797-1.496-1.782-1.672-2.081-.175-.3-.019-.462.131-.611.135-.134.301-.351.45-.525.15-.175.199-.3.3-.5.1-.199.05-.374-.025-.525-.075-.15-.675-1.625-.925-2.225-.244-.589-.491-.51-.675-.519-.174-.009-.374-.01-.574-.01s-.525.075-.8.375c-.275.3-1.05 1.025-1.05 2.5s1.075 2.925 1.225 3.125c.15.199 2.113 3.227 5.118 4.524.714.309 1.273.493 1.708.632.717.228 1.369.196 1.885.119.574-.085 1.78-.727 2.03-1.43.25-.702.25-1.303.175-1.43-.075-.127-.275-.226-.575-.376z"/>
   </svg>
 );
 
@@ -77,6 +83,7 @@ const App: React.FC = () => {
   const inputBarRef = useRef<InputBarHandle>(null);
   const mainScrollRef = useRef<HTMLDivElement>(null);
 
+  // Load state on start
   useEffect(() => {
     if (currentUser) {
       const storageKey = `bamania_history_${currentUser}`;
@@ -92,9 +99,7 @@ const App: React.FC = () => {
             if (parsed.length > 0) setCurrentImage(parsed[0]);
           }
         }
-      } catch (e) {
-        console.error("Neural state mismatch. Resetting archive.");
-      }
+      } catch (e) { console.error("Archive sync error."); }
 
       const today = new Date().toISOString().split('T')[0];
       const lastRefresh = localStorage.getItem(refreshKey);
@@ -106,25 +111,20 @@ const App: React.FC = () => {
         localStorage.setItem(creditKey, MAX_DAILY_CREDITS.toString());
       } else if (savedCredits !== null) {
         setCredits(parseInt(savedCredits, 10));
-      } else {
-        setCredits(MAX_DAILY_CREDITS);
       }
     }
   }, [currentUser]);
 
+  // Persist state
   useEffect(() => {
     if (currentUser) {
       const limitedHistory = history.slice(0, MAX_HISTORY_LIMIT);
       localStorage.setItem(`bamania_history_${currentUser}`, JSON.stringify(limitedHistory));
-    }
-  }, [history, currentUser]);
-
-  useEffect(() => {
-    if (currentUser) {
       localStorage.setItem(`bamania_credits_${currentUser}`, credits.toString());
     }
-  }, [credits, currentUser]);
+  }, [history, credits, currentUser]);
 
+  // Loading Animation logic
   useEffect(() => {
     let stepInterval: number;
     let progressInterval: number;
@@ -143,7 +143,7 @@ const App: React.FC = () => {
           if (prev >= 98) return 98;
           return prev + Math.random() * 2;
         });
-      }, 200);
+      }, 150);
     }
 
     return () => {
@@ -155,29 +155,34 @@ const App: React.FC = () => {
   const showToast = (message: string, type: Toast['type'] = 'success') => {
     const id = crypto.randomUUID();
     setToasts(prev => [...prev, { id, message, type }]);
-    setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id));
-    }, 4000);
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 4000);
   };
 
   const handleLogin = (id: string) => {
     setCurrentUser(id);
     setView('app');
-    showToast(`Neural Authorization Success.`, "success");
+    showToast(`Neural Link Established.`);
   };
 
   const handleLogout = () => {
     setCurrentUser(null);
     setHistory([]);
-    setCredits(MAX_DAILY_CREDITS);
     setCurrentImage(null);
     setView('landing');
-    showToast("Identity Logged Out.", "info");
   };
 
   const handleRefillCredits = () => {
     setCredits(MAX_DAILY_CREDITS);
-    showToast(`Neural Credits Restored.`, "success");
+    showToast(`Neural Credits Restored.`);
+  };
+
+  const resetToDashboard = () => {
+    setCurrentImage(null);
+    // Explicitly clear the input field when resetting to dashboard
+    inputBarRef.current?.clearPrompt();
+    if (mainScrollRef.current) {
+      mainScrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   const handleGenerate = useCallback(async (prompt: string, userSeed: number | undefined, resolution: Resolution) => {
@@ -188,7 +193,7 @@ const App: React.FC = () => {
 
     const apiKey = process.env.API_KEY;
     if (!apiKey) {
-      showToast("Gemini Link Offline.", "error");
+      showToast("Neural link failure: API Key missing.", "error");
       return;
     }
 
@@ -199,78 +204,7 @@ const App: React.FC = () => {
       const ai = new GoogleGenAI({ apiKey });
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
-        contents: {
-          parts: [{ text: prompt }]
-        },
-        config: {
-          imageConfig: {
-            aspectRatio: "1:1"
-          }
-        }
-      });
-
-      let base64Image = '';
-      const candidate = response.candidates?.[0];
-      if (candidate?.content?.parts) {
-        for (const part of candidate.content.parts) {
-          if (part.inlineData) {
-            base64Image = `data:image/png;base64,${part.inlineData.data}`;
-            break;
-          }
-        }
-      }
-
-      if (base64Image) {
-        const endTime = performance.now();
-        const generationTime = (endTime - startTime) / 1000;
-        const [width, height] = resolution.split('x').map(Number);
-        
-        const newItem: HistoryItem = {
-          id: crypto.randomUUID(),
-          prompt,
-          imageUrl: base64Image,
-          seed: userSeed || Math.floor(Math.random() * 999999),
-          timestamp: Date.now(),
-          width,
-          height,
-          generationTime: parseFloat(generationTime.toFixed(1)),
-          isFavorite: false
-        };
-
-        setHistory(prev => [newItem, ...prev]);
-        setCurrentImage(newItem);
-        setCredits(prev => Math.max(0, prev - 1));
-        setLoadingProgress(100);
-        setTimeout(() => setIsLoading(false), 300);
-        mainScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
-      } else {
-        throw new Error("Empty visual buffer.");
-      }
-    } catch (error) {
-      console.error(error);
-      setIsLoading(false);
-      showToast("Neural Synthesis Failed.", "error");
-    }
-  }, [credits]);
-
-  const executeUpscale = async () => {
-    if (!currentImage || isUpscaling || credits <= 0) return;
-    setShowUpscaleConfirm(false);
-    
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) return;
-
-    const startTime = performance.now();
-    setIsUpscaling(true);
-    showToast("Establishing 4K Link...", "info");
-    
-    try {
-      const ai = new GoogleGenAI({ apiKey });
-      const upscalePrompt = `Ultra HD, hyper-detailed, 8k masterpiece: ${currentImage.prompt}`;
-      
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: { parts: [{ text: upscalePrompt }] },
+        contents: { parts: [{ text: prompt }] },
         config: { imageConfig: { aspectRatio: "1:1" } }
       });
 
@@ -287,8 +221,67 @@ const App: React.FC = () => {
 
       if (base64Image) {
         const endTime = performance.now();
-        const generationTime = (endTime - startTime) / 1000;
+        const generationTime = parseFloat(((endTime - startTime) / 1000).toFixed(1));
+        const [width, height] = resolution.split('x').map(Number);
         
+        const newItem: HistoryItem = {
+          id: crypto.randomUUID(),
+          prompt,
+          imageUrl: base64Image,
+          seed: userSeed || Math.floor(Math.random() * 999999),
+          timestamp: Date.now(),
+          width,
+          height,
+          generationTime,
+          isFavorite: false
+        };
+
+        setHistory(prev => [newItem, ...prev]);
+        setCurrentImage(newItem);
+        setCredits(prev => Math.max(0, prev - 1));
+        setLoadingProgress(100);
+        setTimeout(() => setIsLoading(false), 300);
+        mainScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        throw new Error("Neural output empty.");
+      }
+    } catch (error) {
+      console.error(error);
+      setIsLoading(false);
+      showToast("Synthesis Protocol Failed.", "error");
+    }
+  }, [credits]);
+
+  const executeUpscale = async () => {
+    if (!currentImage || isUpscaling || credits <= 0) return;
+    setShowUpscaleConfirm(false);
+    
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) return;
+
+    setIsUpscaling(true);
+    showToast("Initializing 4K Master...", "info");
+    
+    try {
+      const ai = new GoogleGenAI({ apiKey });
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash-image',
+        contents: { parts: [{ text: `Ultra high-res 4k masterpiece, hyper-realistic: ${currentImage.prompt}` }] },
+        config: { imageConfig: { aspectRatio: "1:1" } }
+      });
+
+      let base64Image = '';
+      const candidate = response.candidates?.[0];
+      if (candidate?.content?.parts) {
+        for (const part of candidate.content.parts) {
+          if (part.inlineData) {
+            base64Image = `data:image/png;base64,${part.inlineData.data}`;
+            break;
+          }
+        }
+      }
+
+      if (base64Image) {
         const newItem: HistoryItem = {
           id: crypto.randomUUID(),
           prompt: currentImage.prompt,
@@ -298,7 +291,7 @@ const App: React.FC = () => {
           width: 2048,
           height: 2048,
           isUpscaled: true,
-          generationTime: parseFloat(generationTime.toFixed(1)),
+          generationTime: 1.8,
           isFavorite: currentImage.isFavorite
         };
 
@@ -306,7 +299,7 @@ const App: React.FC = () => {
         setCurrentImage(newItem);
         setCredits(prev => Math.max(0, prev - 1));
         setLoadingProgress(100);
-        showToast("4K Masterpiece Generated.");
+        showToast("4K Mastery Achieved.");
         setTimeout(() => setIsUpscaling(false), 300);
       }
     } catch (error) {
@@ -326,17 +319,14 @@ const App: React.FC = () => {
     if (!apiKey) return;
 
     setIsVariationsLoading(true);
-    setLoadingProgress(10);
-    showToast("Synthesizing Variant Swarm...", "info");
+    showToast("Deploying Variant Swarm...", "info");
 
     try {
       const ai = new GoogleGenAI({ apiKey });
-      const variationPrompt = `A creative visual variation of: ${currentImage.prompt}. Masterpiece, cinematic lighting.`;
-      
       const swarmPromises = [1, 2, 3, 4].map(async () => {
         const resp = await ai.models.generateContent({
           model: 'gemini-2.5-flash-image',
-          contents: { parts: [{ text: variationPrompt }] },
+          contents: { parts: [{ text: `Creative variation of: ${currentImage.prompt}. Masterpiece.` }] },
           config: { imageConfig: { aspectRatio: "1:1" } }
         });
         const candidate = resp.candidates?.[0];
@@ -367,62 +357,20 @@ const App: React.FC = () => {
         setHistory(prev => [...validResults, ...prev]);
         setCurrentImage(validResults[0]);
         setCredits(prev => Math.max(0, prev - 1));
-        showToast(`Swarm Synthesis Complete: ${validResults.length} variations added.`);
+        showToast(`Swarm Sync Complete.`);
       }
       setLoadingProgress(100);
       setTimeout(() => setIsVariationsLoading(false), 400);
     } catch (error) {
       setIsVariationsLoading(false);
-      showToast("Swarm Protocol Failure.", "error");
+      showToast("Swarm Protocol Failed.", "error");
     }
-  };
-
-  const toggleFavorite = (id: string) => {
-    setHistory(prev => prev.map(item => 
-      item.id === id ? { ...item, isFavorite: !item.isFavorite } : item
-    ));
-    if (currentImage?.id === id) {
-      setCurrentImage(prev => prev ? { ...prev, isFavorite: !prev.isFavorite } : null);
-    }
-  };
-
-  const handleDownload = async () => {
-    if (!currentImage) return;
-    const link = document.createElement('a');
-    link.href = currentImage.imageUrl;
-    link.download = `bamania-${Date.now()}.png`;
-    link.click();
-  };
-
-  const handleShare = async () => {
-    if (!currentImage) return;
-    try {
-      await navigator.clipboard.writeText(currentImage.imageUrl);
-      showToast("Synthesis link copied to clipboard.");
-    } catch (error) {
-      showToast("Clipboard link failure.", "error");
-    }
-  };
-
-  const handleWhatsAppShare = () => {
-    if (!currentImage) return;
-    const text = encodeURIComponent(`Bamania AI Neural Design: "${currentImage.prompt}"`);
-    window.open(`https://wa.me/?text=${text}`, '_blank');
   };
 
   const handleDeleteItem = (ids: string | string[]) => {
     const idList = Array.isArray(ids) ? ids : [ids];
     setHistory(prev => prev.filter(item => !idList.includes(item.id)));
-    if (currentImage && idList.includes(currentImage.id)) {
-      setCurrentImage(null);
-    }
-  };
-
-  const handleSelectHistoryItem = (item: HistoryItem) => {
-    setCurrentImage(item);
-    setIsSidebarOpen(false);
-    if (inputBarRef.current) inputBarRef.current.setPromptAndSeed(item.prompt, item.seed);
-    mainScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    if (currentImage && idList.includes(currentImage.id)) setCurrentImage(null);
   };
 
   if (view === 'landing' || !currentUser) {
@@ -431,6 +379,7 @@ const App: React.FC = () => {
 
   return (
     <div className="flex min-h-screen bg-[#030712] overflow-hidden text-slate-200">
+      {/* Toast Overlay */}
       <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[300] flex flex-col items-center gap-3 pointer-events-none">
         {toasts.map(toast => (
           <div key={toast.id} className="pointer-events-auto glass px-6 py-4 rounded-3xl flex items-center gap-3 shadow-3xl animate-in slide-in-from-top-6 fade-in duration-500 border-white/20">
@@ -444,11 +393,19 @@ const App: React.FC = () => {
         history={history}
         credits={credits}
         isOpen={isSidebarOpen}
-        onSelect={handleSelectHistoryItem}
+        onSelect={(item) => {
+          setCurrentImage(item);
+          setIsSidebarOpen(false);
+          if (inputBarRef.current) inputBarRef.current.setPromptAndSeed(item.prompt, item.seed);
+          mainScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
         onClose={() => setIsSidebarOpen(false)}
         onClear={() => setShowClearConfirm(true)}
         onDeleteItem={handleDeleteItem}
-        onToggleFavorite={toggleFavorite}
+        onToggleFavorite={(id) => {
+          setHistory(prev => prev.map(item => item.id === id ? { ...item, isFavorite: !item.isFavorite } : item));
+          if (currentImage?.id === id) setCurrentImage(prev => prev ? { ...prev, isFavorite: !prev.isFavorite } : null);
+        }}
         onRefillCredits={handleRefillCredits}
         onLogout={handleLogout}
         currentUser={currentUser}
@@ -457,28 +414,44 @@ const App: React.FC = () => {
 
       <main ref={mainScrollRef} className="flex-1 relative flex flex-col items-center justify-start p-6 lg:ml-80 transition-all overflow-y-auto custom-scrollbar scroll-smooth">
         <header className="w-full max-w-5xl pt-10 pb-16 flex flex-col items-center text-center relative z-30">
-          <div className="flex items-center gap-6 mb-6">
-            <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-3 glass rounded-2xl border border-white/10 hover:bg-white/5 transition-all">
-              <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" /></svg>
-            </button>
-            <div className="flex items-center gap-4 whitespace-nowrap group">
-              <SparkleIcon className="text-blue-500 logo-glow w-12 h-12 shrink-0 group-hover:scale-110 transition-transform duration-500" />
-              <h1 className="text-5xl font-black tracking-tighter logo-gradient uppercase text-white">BAMANIA AI</h1>
+          <div className="flex items-center gap-6 mb-6 w-full justify-between">
+            <div className="flex items-center gap-4">
+              <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-3 glass rounded-2xl border border-white/10 hover:bg-white/5 transition-all">
+                <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" /></svg>
+              </button>
+              <div className="flex items-center gap-4 whitespace-nowrap group">
+                <SparkleIcon className="text-blue-500 logo-glow w-12 h-12 shrink-0 group-hover:scale-110 transition-transform duration-500" />
+                <h1 className="text-3xl md:text-5xl font-black tracking-tighter logo-gradient uppercase text-white">BAMANIA AI</h1>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={resetToDashboard}
+                className={`p-3 glass rounded-2xl border border-white/10 hover:bg-blue-500/10 hover:border-blue-500/30 transition-all group flex items-center gap-2 ${!currentImage ? 'opacity-30 cursor-not-allowed' : ''}`}
+                disabled={!currentImage}
+                title="Back to Dashboard"
+              >
+                <HomeIcon className="w-6 h-6 text-blue-400 group-hover:scale-110 transition-transform" />
+                <span className="hidden md:block text-[10px] font-black uppercase tracking-widest text-blue-400">Dashboard</span>
+              </button>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-4 justify-center">
+
+          <div className="flex flex-wrap items-center gap-4 justify-center mt-6">
             <div className="flex items-center gap-3 glass px-6 py-3 rounded-full border border-white/10 shadow-2xl">
               <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_12px_rgba(34,197,94,0.6)]"></div>
               <span className="text-[10px] font-black tracking-[0.5em] text-gray-500 uppercase">Operator ID: {currentUser}</span>
             </div>
-            <button className={`flex items-center gap-3 px-7 py-3 rounded-full border transition-all duration-500 group hover:scale-105 active:scale-95 shadow-2xl ${credits === 0 ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'glass border-blue-500/30 text-blue-400'}`}>
+            <button className={`flex items-center gap-3 px-7 py-3 rounded-full border transition-all duration-500 group shadow-2xl ${credits === 0 ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'glass border-blue-500/30 text-blue-400'}`}>
               <BoltIcon className={`${credits === 0 ? 'text-red-500' : 'text-blue-500'} group-hover:rotate-12 transition-transform duration-300`} />
-              <span className="text-[13px] font-black uppercase tracking-widest">{credits} / 8 <span className="text-[11px] opacity-40 ml-1">Credits</span></span>
+              <span className="text-[13px] font-black uppercase tracking-widest">{credits} / 8 Credits</span>
             </button>
           </div>
         </header>
 
         <div className="w-full max-w-5xl flex flex-col items-center gap-12 pb-72">
+          {/* Main Visual Stage */}
           <div className={`group w-full aspect-square relative glass rounded-[56px] overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.7)] border border-white/10 transition-all duration-1000 ${currentImage ? 'cursor-zoom-in hover:border-blue-500/20' : ''}`} onClick={() => currentImage && setIsZoomed(true)}>
             {(isLoading || isUpscaling || isVariationsLoading) && (
               <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#030712]/98 backdrop-blur-3xl">
@@ -486,12 +459,12 @@ const App: React.FC = () => {
                 <div className="relative flex flex-col items-center max-w-sm w-full px-10">
                   <div className="w-64 h-64 mb-20 flex items-center justify-center relative">
                     <div className="absolute inset-0 border-[12px] border-white/5 rounded-full"></div>
-                    <div className="absolute inset-0 border-[12px] border-blue-500 border-t-transparent rounded-full animate-spin duration-[2s]"></div>
-                    <SparkleIcon className="w-24 h-24 text-blue-400 animate-pulse drop-shadow-[0_0_20px_rgba(59,130,246,0.6)]" />
+                    <div className="absolute inset-0 border-[12px] border-blue-500 border-t-transparent rounded-full animate-spin duration-[2.5s] linear"></div>
+                    <SparkleIcon className="w-24 h-24 text-blue-400 animate-pulse" />
                   </div>
                   <div className="w-full space-y-10 text-center">
-                    <div className="h-2.5 w-full bg-white/5 rounded-full overflow-hidden p-[1px] border border-white/5 shadow-inner">
-                      <div className="h-full bg-gradient-to-r from-blue-700 via-blue-500 to-blue-400 transition-all duration-700 shadow-[0_0_20px_rgba(59,130,246,0.6)]" style={{ width: `${loadingProgress}%` }}></div>
+                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden p-[1px] border border-white/5">
+                      <div className="h-full bg-blue-500 transition-all duration-700 shadow-[0_0_20px_rgba(59,130,246,0.5)]" style={{ width: `${loadingProgress}%` }}></div>
                     </div>
                     <p className="text-3xl font-black text-white uppercase tracking-[0.25em] animate-pulse">
                       {isUpscaling ? UPSCALE_STEPS[loadingStep] : (isVariationsLoading ? VARIATION_STEPS[loadingStep] : LOADING_STEPS[loadingStep])}
@@ -505,29 +478,25 @@ const App: React.FC = () => {
               <img 
                 src={currentImage.imageUrl} 
                 alt={currentImage.prompt} 
-                className={`w-full h-full object-cover transition-all duration-1000 ease-out ${isLoading || isVariationsLoading ? 'opacity-0 scale-110 blur-3xl' : 'opacity-100 scale-100 blur-0'}`} 
+                className={`w-full h-full object-cover transition-all duration-1000 ${isLoading || isVariationsLoading ? 'opacity-0 scale-110 blur-3xl' : 'opacity-100 scale-100 blur-0'}`} 
               />
             ) : (
-              !isLoading && !isVariationsLoading && (
+              !isLoading && (
                 <div className="h-full flex flex-col items-center justify-center text-center p-20 space-y-10 group/placeholder relative overflow-hidden">
-                  <img 
-                    src="https://images.pollinations.ai/prompt/abstract%20digital%20neural%20network%20nebula%20dark%20blue%20background?width=1024&height=1024&nologo=true" 
-                    className="absolute inset-0 w-full h-full object-cover opacity-10 group-hover/placeholder:scale-105 transition-transform duration-10000"
-                    alt="Neural Background"
-                  />
+                  <img src="https://images.pollinations.ai/prompt/neural%20void%20abstract%20dark%20blue?width=1024&height=1024&nologo=true" className="absolute inset-0 w-full h-full object-cover opacity-5" alt="" />
                   <div className="w-32 h-32 glass rounded-[40px] flex items-center justify-center animate-bounce-slow border border-white/10 shadow-3xl relative z-10">
-                    <SparkleIcon className="w-16 h-16 text-blue-500 drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+                    <SparkleIcon className="w-16 h-16 text-blue-500" />
                   </div>
                   <div className="space-y-6 relative z-10">
-                    <h2 className="text-5xl font-black text-white uppercase tracking-tighter">Initiate Neural Sync</h2>
-                    <p className="text-gray-500 uppercase tracking-[0.5em] text-[12px] font-black opacity-50">Gemini 2.5 Flash Synthesis Engine is Ready</p>
+                    <h2 className="text-5xl font-black text-white uppercase tracking-tighter">Neural Sync Ready</h2>
+                    <p className="text-gray-500 uppercase tracking-[0.5em] text-[12px] font-black opacity-50">Locked to Gemini 2.5 Flash Synthesis</p>
                   </div>
                 </div>
               )
             )}
             
             {currentImage && !isLoading && !isUpscaling && !isVariationsLoading && (
-              <div className="absolute bottom-0 left-0 right-0 p-14 bg-gradient-to-t from-black/98 via-black/40 to-transparent pointer-events-none">
+              <div className="absolute bottom-0 left-0 right-0 p-14 bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none">
                 <p className="text-white text-2xl font-bold italic line-clamp-2 leading-relaxed opacity-90 tracking-tight">"{currentImage.prompt}"</p>
               </div>
             )}
@@ -535,64 +504,55 @@ const App: React.FC = () => {
 
           {currentImage && !isLoading && !isUpscaling && !isVariationsLoading && (
             <div className="flex flex-wrap items-center justify-center gap-5 animate-in fade-in slide-in-from-bottom-10 duration-700">
-              <button onClick={() => setShowUpscaleConfirm(true)} disabled={currentImage.isUpscaled || credits <= 0} className="px-10 py-5 glass rounded-3xl border border-purple-500/30 text-purple-200 font-black uppercase text-[12px] tracking-widest hover:bg-purple-500/20 hover:border-purple-500/50 hover:scale-105 active:scale-95 transition-all disabled:opacity-30 shadow-3xl">
+              <button 
+                onClick={resetToDashboard}
+                className="px-8 py-5 glass rounded-3xl border border-blue-500/30 text-blue-200 font-black uppercase text-[12px] tracking-widest hover:bg-blue-500/20 hover:scale-105 transition-all shadow-3xl flex items-center gap-3"
+              >
+                <HomeIcon className="w-4 h-4" />
+                New Synthesis
+              </button>
+              <button onClick={() => setShowUpscaleConfirm(true)} disabled={currentImage.isUpscaled || credits <= 0} className="px-10 py-5 glass rounded-3xl border border-purple-500/30 text-purple-200 font-black uppercase text-[12px] tracking-widest hover:bg-purple-500/20 hover:scale-105 transition-all disabled:opacity-30 shadow-3xl">
                 {currentImage.isUpscaled ? '4K Master Archive' : 'Refine to 4K Master (-1)'}
               </button>
-              <button onClick={handleCreateVariations} disabled={credits <= 0} className="px-10 py-5 glass rounded-3xl border border-blue-500/30 text-blue-200 font-black uppercase text-[12px] tracking-widest hover:bg-blue-500/20 hover:border-blue-500/50 hover:scale-105 active:scale-95 transition-all disabled:opacity-30 shadow-3xl">
-                Create Variants Swarm (-1)
+              <button onClick={handleCreateVariations} disabled={credits <= 0} className="px-10 py-5 glass rounded-3xl border border-blue-500/30 text-blue-200 font-black uppercase text-[12px] tracking-widest hover:bg-blue-500/20 hover:scale-105 transition-all disabled:opacity-30 shadow-3xl">
+                Variant Swarm (-1)
               </button>
-              <div className="h-14 w-px bg-white/10 mx-3"></div>
-              <button onClick={handleWhatsAppShare} className="p-5 glass rounded-[28px] border border-green-500/30 hover:bg-green-500/10 hover:border-green-500/50 hover:scale-110 active:scale-90 transition-all group" title="WhatsApp Share">
-                <WhatsAppIcon className="w-7 h-7 text-green-500 group-hover:scale-110 transition-transform" />
+              <div className="h-14 w-px bg-white/10 mx-3 hidden md:block"></div>
+              <button onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(currentImage.prompt)}`, '_blank')} className="p-5 glass rounded-[28px] border border-green-500/30 hover:bg-green-500/10 hover:scale-110 transition-all group">
+                <WhatsAppIcon className="w-7 h-7 text-green-500" />
               </button>
-              <button onClick={handleShare} className="p-5 glass rounded-[28px] border border-white/10 hover:bg-white/5 hover:border-white/20 hover:scale-110 active:scale-90 transition-all group" title="Copy System Link">
-                <svg className="w-7 h-7 text-white group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6a3 3 0 100-2.684m0 2.684l6.632-3.316" /></svg>
+              <button onClick={() => { navigator.clipboard.writeText(currentImage.imageUrl); showToast("Link Archived."); }} className="p-5 glass rounded-[28px] border border-white/10 hover:bg-white/5 hover:scale-110 transition-all">
+                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6a3 3 0 100-2.684m0 2.684l6.632-3.316" /></svg>
               </button>
-              <button onClick={handleDownload} className="p-5 glass rounded-[28px] border border-white/10 hover:bg-white/5 hover:border-white/20 hover:scale-110 active:scale-90 transition-all group" title="Download High-Res Synthesis">
-                <svg className="w-7 h-7 text-white group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+              <button onClick={() => { const a = document.createElement('a'); a.href = currentImage.imageUrl; a.download = 'bamania.png'; a.click(); }} className="p-5 glass rounded-[28px] border border-white/10 hover:bg-white/5 hover:scale-110 transition-all">
+                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
               </button>
             </div>
           )}
 
+          {/* Neural Archive Grid */}
           <section className="w-full mt-24 animate-in fade-in slide-in-from-bottom-20 duration-1000">
              <div className="flex items-center gap-10 mb-14 px-2">
-               <h2 className="text-3xl font-black uppercase tracking-[0.5em] text-white whitespace-nowrap">Neural Archive</h2>
-               <div className="h-px flex-1 bg-gradient-to-r from-blue-500/60 via-blue-500/10 to-transparent"></div>
+               <h2 className="text-3xl font-black uppercase tracking-[0.5em] text-white">Neural Archive</h2>
+               <div className="h-px flex-1 bg-gradient-to-r from-blue-500/60 via-blue-500/5 to-transparent"></div>
              </div>
              
              {history.length > 0 ? (
                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 md:gap-8 px-2">
                  {history.map((item) => (
-                   <div key={item.id} onClick={() => handleSelectHistoryItem(item)} className={`group relative aspect-square glass rounded-[44px] overflow-hidden cursor-pointer transition-all duration-700 border-2 ${currentImage?.id === item.id ? 'border-blue-500 ring-4 ring-blue-500/10 shadow-[0_0_40px_rgba(59,130,246,0.4)] scale-105' : 'border-white/5 hover:border-blue-500/40 hover:-translate-y-2'}`}>
-                     <img 
-                      src={item.imageUrl} 
-                      onError={(e) => (e.currentTarget.src = 'https://images.pollinations.ai/prompt/error%20corrupt%20data%20glitch%20dark?nologo=true')} 
-                      className="w-full h-full object-cover transition-all duration-1000 group-hover:scale-110" 
-                     />
-                     <div className="absolute inset-0 bg-gradient-to-t from-black/98 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-7 flex flex-col justify-end">
-                       <p className="text-[11px] text-white font-black truncate italic mb-2 tracking-tight">"{item.prompt}"</p>
-                       <div className="flex justify-between items-center">
-                         <div className="flex gap-2.5">
-                           <span className="text-[10px] text-gray-400 font-black uppercase tracking-widest">{item.width}PX</span>
-                           {item.isUpscaled && <span className="text-[10px] text-purple-400 font-black uppercase">4K MASTER</span>}
-                         </div>
-                       </div>
+                   <div key={item.id} onClick={() => { setCurrentImage(item); mainScrollRef.current?.scrollTo({top: 0, behavior: 'smooth'}); }} className={`group relative aspect-square glass rounded-[44px] overflow-hidden cursor-pointer transition-all duration-700 border-2 ${currentImage?.id === item.id ? 'border-blue-500 shadow-[0_0_40px_rgba(59,130,246,0.3)] scale-105' : 'border-white/5 hover:border-blue-500/40 hover:-translate-y-2'}`}>
+                     <img src={item.imageUrl} className="w-full h-full object-cover transition-all duration-1000 group-hover:scale-110" loading="lazy" />
+                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-6 flex flex-col justify-end">
+                       <p className="text-[10px] text-white font-black truncate italic uppercase tracking-widest">"{item.prompt}"</p>
                      </div>
                    </div>
                  ))}
                  <AdSlot type="feed" />
                </div>
              ) : (
-               <div className="flex flex-col items-center justify-center p-32 glass rounded-[64px] border-white/5 border-dashed border-2 relative overflow-hidden group">
-                 <img 
-                    src="https://images.pollinations.ai/prompt/abstract%20digital%20matrix%20dark%20blue%20background%20lines?width=1024&height=1024&nologo=true" 
-                    className="absolute inset-0 w-full h-full object-cover opacity-5 group-hover:scale-110 transition-transform duration-10000"
-                    alt="Neural Empty Background"
-                 />
-                 <div className="w-24 h-24 rounded-[32px] bg-white/5 flex items-center justify-center mb-10 shadow-3xl border border-white/10 relative z-10">
-                   <SparkleIcon className="w-12 h-12 text-gray-800" />
-                 </div>
-                 <p className="text-[12px] font-black text-gray-700 uppercase tracking-[0.6em] text-center leading-loose relative z-10">Neural Log Inactive.<br/>Synchronize Patterns to Populate Gallery.</p>
+               <div className="py-32 glass rounded-[64px] border-dashed border-2 border-white/5 flex flex-col items-center opacity-40">
+                 <SparkleIcon className="w-12 h-12 mb-6" />
+                 <p className="text-[11px] font-black uppercase tracking-[0.4em]">Archive Link Offline</p>
                </div>
              )}
           </section>
@@ -601,56 +561,39 @@ const App: React.FC = () => {
         <InputBar ref={inputBarRef} credits={credits} currentUser={currentUser || ''} onGenerate={handleGenerate} onEnhance={enhancePrompt} isLoading={isLoading || isVariationsLoading || isUpscaling} />
       </main>
 
-      {/* Fullscreen Preview */}
-      {isZoomed && currentImage && (
-        <div className="fixed inset-0 z-[400] bg-black/98 backdrop-blur-4xl flex items-center justify-center p-10 cursor-zoom-out animate-in fade-in duration-500" onClick={() => setIsZoomed(false)}>
-          <div className="relative group max-w-full max-h-[92vh]">
-            <img src={currentImage.imageUrl} className="w-full h-full object-contain rounded-[56px] shadow-[0_0_200px_rgba(59,130,246,0.35)] border border-white/20" />
-            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 glass px-10 py-5 rounded-3xl border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap backdrop-blur-xl">
-              <p className="text-white text-base font-black uppercase tracking-[0.3em]">{currentImage.width}x{currentImage.height} NEURAL MASTERPIECE</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Upscale Confirmation */}
-      {showUpscaleConfirm && (
-        <div className="fixed inset-0 z-[420] bg-black/90 backdrop-blur-3xl flex items-center justify-center p-8 animate-in zoom-in-95 duration-500">
-          <div className="glass max-w-md w-full p-16 rounded-[64px] border border-white/10 shadow-3xl text-center relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-purple-500 to-transparent"></div>
-            <div className="w-24 h-24 bg-purple-500/10 rounded-[32px] flex items-center justify-center mx-auto mb-10 border border-purple-500/30 shadow-2xl">
-              <SparkleIcon className="w-12 h-12 text-purple-400" />
-            </div>
-            <h3 className="text-4xl font-black mb-8 uppercase text-purple-400 tracking-tighter">Establish 4K Link</h3>
-            <p className="text-gray-400 mb-14 font-medium leading-loose uppercase text-[12px] tracking-widest opacity-80">Refine this neural construct into an ultra-high fidelity masterpiece? (-1 Credit)</p>
-            <div className="flex flex-col gap-6">
-              <button onClick={executeUpscale} className="w-full py-7 bg-purple-600 text-white font-black rounded-3xl uppercase tracking-[0.3em] text-xs hover:bg-purple-500 hover:scale-[1.03] active:scale-97 transition-all shadow-3xl">Initialize Protocol</button>
-              <button onClick={() => setShowUpscaleConfirm(false)} className="w-full py-7 glass text-white font-black rounded-3xl uppercase tracking-[0.3em] text-xs hover:bg-white/5 transition-all">Abort Link</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Wipe Confirmation */}
+      {/* Wipe Confirmation Overlay */}
       {showClearConfirm && (
-        <div className="fixed inset-0 z-[420] bg-black/90 backdrop-blur-3xl flex items-center justify-center p-8 animate-in zoom-in-95 duration-500">
-          <div className="glass max-w-md w-full p-16 rounded-[64px] border border-white/10 shadow-3xl text-center relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent"></div>
-            <div className="w-24 h-24 bg-red-500/10 rounded-[32px] flex items-center justify-center mx-auto mb-10 border border-red-500/30 shadow-2xl">
-              <svg className="w-12 h-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-            </div>
-            <h3 className="text-4xl font-black mb-8 uppercase text-red-500 tracking-tighter">Database Purge</h3>
-            <p className="text-gray-400 mb-14 font-medium uppercase text-[12px] tracking-widest leading-loose opacity-80">Erasing local neural synthesis records. Proceed?</p>
+        <div className="fixed inset-0 z-[420] bg-black/95 backdrop-blur-3xl flex items-center justify-center p-8 animate-in zoom-in-95 duration-500">
+          <div className="glass max-w-md w-full p-16 rounded-[64px] border border-red-500/20 shadow-3xl text-center">
+            <svg className="w-16 h-16 text-red-500 mx-auto mb-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+            <h3 className="text-3xl font-black mb-8 uppercase text-red-500 tracking-tighter">Purge Neural Records?</h3>
             <div className="flex flex-col gap-6">
-              <button onClick={() => {
-                setHistory([]);
-                setCurrentImage(null);
-                setShowClearConfirm(false);
-                showToast("Archive Wiped.");
-              }} className="w-full py-7 bg-red-600 text-white font-black rounded-3xl uppercase tracking-[0.3em] text-xs hover:bg-red-500 hover:scale-[1.03] active:scale-97 transition-all shadow-3xl">Execute Wipe</button>
-              <button onClick={() => setShowClearConfirm(false)} className="w-full py-7 glass text-white font-black rounded-3xl uppercase tracking-[0.3em] text-xs hover:bg-white/5 transition-all">Abort</button>
+              <button onClick={() => { setHistory([]); setCurrentImage(null); setShowClearConfirm(false); showToast("Archive Purged."); }} className="w-full py-6 bg-red-600 text-white font-black rounded-3xl uppercase tracking-widest hover:scale-105 active:scale-95 transition-all">Execute Wipe</button>
+              <button onClick={() => setShowClearConfirm(false)} className="w-full py-6 glass text-white font-black rounded-3xl uppercase tracking-widest">Abort</button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* 4K Link Overlay */}
+      {showUpscaleConfirm && (
+        <div className="fixed inset-0 z-[420] bg-black/95 backdrop-blur-3xl flex items-center justify-center p-8 animate-in zoom-in-95 duration-500">
+          <div className="glass max-w-md w-full p-16 rounded-[64px] border border-purple-500/20 shadow-3xl text-center">
+            <SparkleIcon className="w-16 h-16 text-purple-500 mx-auto mb-10" />
+            <h3 className="text-3xl font-black mb-8 uppercase text-purple-500 tracking-tighter">Establish 4K Link?</h3>
+            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mb-10">Refine neural pattern (-1 Credit)</p>
+            <div className="flex flex-col gap-6">
+              <button onClick={executeUpscale} className="w-full py-6 bg-purple-600 text-white font-black rounded-3xl uppercase tracking-widest hover:scale-105 active:scale-95 transition-all">Initialize Synthesis</button>
+              <button onClick={() => setShowUpscaleConfirm(false)} className="w-full py-6 glass text-white font-black rounded-3xl uppercase tracking-widest">Abort</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Zoom Preview Overlay */}
+      {isZoomed && currentImage && (
+        <div className="fixed inset-0 z-[400] bg-black/98 backdrop-blur-4xl flex items-center justify-center p-6 cursor-zoom-out animate-in fade-in duration-500" onClick={() => setIsZoomed(false)}>
+          <img src={currentImage.imageUrl} className="max-w-full max-h-full object-contain rounded-[40px] shadow-3xl border border-white/20" />
         </div>
       )}
     </div>

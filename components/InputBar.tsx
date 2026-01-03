@@ -12,6 +12,7 @@ interface InputBarProps {
 
 export interface InputBarHandle {
   setPromptAndSeed: (prompt: string, seed: number) => void;
+  clearPrompt: () => void;
 }
 
 const MAX_SEED = 2147483647;
@@ -43,6 +44,10 @@ const InputBar = forwardRef<InputBarHandle, InputBarProps>(({ onGenerate, onEnha
     setPromptAndSeed: (p: string, s: number) => {
       setPrompt(p);
       setSeed(s.toString());
+    },
+    clearPrompt: () => {
+      setPrompt('');
+      setSeed('');
     }
   }));
 
@@ -64,6 +69,8 @@ const InputBar = forwardRef<InputBarHandle, InputBarProps>(({ onGenerate, onEnha
     if (prompt.trim() && !isLoading && !isEnhancing && credits > 0) {
       const seedNum = seed.trim() !== '' ? parseInt(seed, 10) : undefined;
       onGenerate(prompt, seedNum, resolution);
+      // Clear prompt immediately for next generation
+      setPrompt('');
     }
   };
 
@@ -89,12 +96,6 @@ const InputBar = forwardRef<InputBarHandle, InputBarProps>(({ onGenerate, onEnha
     const updated = [newSaved, ...savedPrompts];
     setSavedPrompts(updated);
     localStorage.setItem(`bamania_saved_${currentUser}`, JSON.stringify(updated));
-    showToastLocal("Prompt Saved to Archive.");
-  };
-
-  const showToastLocal = (msg: string) => {
-    // Note: The parent App handles toasts, but for internal library feedback we keep it simple
-    console.log(msg);
   };
 
   const handleDeleteSaved = (id: string, e: React.MouseEvent) => {
