@@ -64,6 +64,38 @@ interface Toast {
   type: 'success' | 'info' | 'error';
 }
 
+const SkeletonLoader: React.FC<{ progress: number, stepText: string }> = ({ progress, stepText }) => (
+  <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#030712]/95 backdrop-blur-3xl overflow-hidden">
+    <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #3b82f6 1px, transparent 0)', backgroundSize: '40px 40px' }}></div>
+    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent shadow-[0_0_25px_rgba(59,130,246,0.9)] animate-[scanline_1.5s_linear_infinite] z-30"></div>
+    <div className="relative flex flex-col items-center max-w-sm w-full px-10">
+      <div className="w-64 h-64 mb-16 flex items-center justify-center relative">
+        <div className="absolute inset-0 border-[4px] border-blue-500/10 rounded-full animate-ping duration-[3s]"></div>
+        <div className="absolute inset-2 border-[2px] border-blue-500/20 rounded-full animate-pulse duration-[2s]"></div>
+        <svg className="absolute inset-0 w-full h-full -rotate-90">
+          <circle cx="128" cy="128" r="120" fill="transparent" stroke="currentColor" strokeWidth="8" className="text-white/5" />
+          <circle cx="128" cy="128" r="120" fill="transparent" stroke="currentColor" strokeWidth="8" strokeDasharray={754} strokeDashoffset={754 - (754 * progress) / 100} strokeLinecap="round" className="text-blue-500 transition-all duration-700 ease-out shadow-[0_0_15px_rgba(59,130,246,0.5)]" />
+        </svg>
+        <div className="relative z-10 bg-blue-500/5 p-8 rounded-full border border-blue-500/20 backdrop-blur-xl group">
+          <SparkleIcon className="w-16 h-16 text-blue-500 animate-pulse" />
+        </div>
+      </div>
+      <div className="w-full space-y-8 text-center">
+        <div className="flex justify-between items-end mb-2 px-1">
+          <span className="text-[10px] font-black text-blue-500 uppercase tracking-[0.4em]">{Math.round(progress)}% COMPLETE</span>
+          <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest italic">SYNTHESIS_ACTIVE</span>
+        </div>
+        <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden p-[1px] border border-white/5 backdrop-blur-sm">
+          <div className="h-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all duration-700 shadow-[0_0_20px_rgba(59,130,246,0.5)] rounded-full" style={{ width: `${progress}%` }}></div>
+        </div>
+        <div className="relative h-12 flex items-center justify-center">
+          <p className="text-xl md:text-2xl font-black text-white uppercase tracking-[0.2em] animate-pulse drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]">{stepText}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [view, setView] = useState<ViewState>('landing');
@@ -83,13 +115,11 @@ const App: React.FC = () => {
   const inputBarRef = useRef<InputBarHandle>(null);
   const mainScrollRef = useRef<HTMLDivElement>(null);
 
-  // Load state on start
   useEffect(() => {
     if (currentUser) {
       const storageKey = `bamania_history_${currentUser}`;
       const creditKey = `bamania_credits_${currentUser}`;
       const refreshKey = `bamania_last_refresh_${currentUser}`;
-      
       try {
         const saved = localStorage.getItem(storageKey);
         if (saved) {
@@ -100,11 +130,9 @@ const App: React.FC = () => {
           }
         }
       } catch (e) { console.error("Archive sync error."); }
-
       const today = new Date().toISOString().split('T')[0];
       const lastRefresh = localStorage.getItem(refreshKey);
       const savedCredits = localStorage.getItem(creditKey);
-
       if (lastRefresh !== today) {
         setCredits(MAX_DAILY_CREDITS);
         localStorage.setItem(refreshKey, today);
@@ -115,7 +143,6 @@ const App: React.FC = () => {
     }
   }, [currentUser]);
 
-  // Persist state
   useEffect(() => {
     if (currentUser) {
       const limitedHistory = history.slice(0, MAX_HISTORY_LIMIT);
@@ -124,28 +151,26 @@ const App: React.FC = () => {
     }
   }, [history, credits, currentUser]);
 
-  // Loading Animation logic
   useEffect(() => {
     let stepInterval: number;
     let progressInterval: number;
     const activeLoading = isLoading || isVariationsLoading || isUpscaling;
     const steps = isUpscaling ? UPSCALE_STEPS : (isVariationsLoading ? VARIATION_STEPS : LOADING_STEPS);
-
     if (activeLoading) {
       setLoadingStep(0);
-      setLoadingProgress(5);
+      setLoadingProgress(2);
       stepInterval = window.setInterval(() => {
         setLoadingStep(prev => (prev + 1) % steps.length);
-      }, 1000);
-
+      }, 1200);
       progressInterval = window.setInterval(() => {
         setLoadingProgress(prev => {
           if (prev >= 98) return 98;
-          return prev + Math.random() * 2;
+          const remaining = 100 - prev;
+          const increment = (remaining * 0.05) + (Math.random() * 0.5);
+          return Math.min(98.5, prev + increment);
         });
-      }, 150);
+      }, 200);
     }
-
     return () => {
       clearInterval(stepInterval);
       clearInterval(progressInterval);
@@ -176,9 +201,8 @@ const App: React.FC = () => {
     showToast(`Neural Credits Restored.`);
   };
 
-  const resetToDashboard = () => {
+  const handleGenerateNew = () => {
     setCurrentImage(null);
-    // Explicitly clear the input field when resetting to dashboard
     inputBarRef.current?.clearPrompt();
     if (mainScrollRef.current) {
       mainScrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
@@ -190,16 +214,13 @@ const App: React.FC = () => {
       showToast("Identity credits exhausted.", "error");
       return;
     }
-
     const apiKey = process.env.API_KEY;
     if (!apiKey) {
       showToast("Neural link failure: API Key missing.", "error");
       return;
     }
-
     const startTime = performance.now();
     setIsLoading(true);
-    
     try {
       const ai = new GoogleGenAI({ apiKey });
       const response = await ai.models.generateContent({
@@ -207,7 +228,6 @@ const App: React.FC = () => {
         contents: { parts: [{ text: prompt }] },
         config: { imageConfig: { aspectRatio: "1:1" } }
       });
-
       let base64Image = '';
       const candidate = response.candidates?.[0];
       if (candidate?.content?.parts) {
@@ -218,12 +238,10 @@ const App: React.FC = () => {
           }
         }
       }
-
       if (base64Image) {
         const endTime = performance.now();
         const generationTime = parseFloat(((endTime - startTime) / 1000).toFixed(1));
         const [width, height] = resolution.split('x').map(Number);
-        
         const newItem: HistoryItem = {
           id: crypto.randomUUID(),
           prompt,
@@ -235,12 +253,11 @@ const App: React.FC = () => {
           generationTime,
           isFavorite: false
         };
-
         setHistory(prev => [newItem, ...prev]);
         setCurrentImage(newItem);
         setCredits(prev => Math.max(0, prev - 1));
         setLoadingProgress(100);
-        setTimeout(() => setIsLoading(false), 300);
+        setTimeout(() => setIsLoading(false), 500);
         mainScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         throw new Error("Neural output empty.");
@@ -252,16 +269,18 @@ const App: React.FC = () => {
     }
   }, [credits]);
 
+  const executeRegenerate = () => {
+    if (!currentImage || isLoading || credits <= 0) return;
+    handleGenerate(currentImage.prompt, undefined, '1024x1024');
+  };
+
   const executeUpscale = async () => {
     if (!currentImage || isUpscaling || credits <= 0) return;
     setShowUpscaleConfirm(false);
-    
     const apiKey = process.env.API_KEY;
     if (!apiKey) return;
-
     setIsUpscaling(true);
     showToast("Initializing 4K Master...", "info");
-    
     try {
       const ai = new GoogleGenAI({ apiKey });
       const response = await ai.models.generateContent({
@@ -269,7 +288,6 @@ const App: React.FC = () => {
         contents: { parts: [{ text: `Ultra high-res 4k masterpiece, hyper-realistic: ${currentImage.prompt}` }] },
         config: { imageConfig: { aspectRatio: "1:1" } }
       });
-
       let base64Image = '';
       const candidate = response.candidates?.[0];
       if (candidate?.content?.parts) {
@@ -280,7 +298,6 @@ const App: React.FC = () => {
           }
         }
       }
-
       if (base64Image) {
         const newItem: HistoryItem = {
           id: crypto.randomUUID(),
@@ -294,13 +311,12 @@ const App: React.FC = () => {
           generationTime: 1.8,
           isFavorite: currentImage.isFavorite
         };
-
         setHistory(prev => [newItem, ...prev]);
         setCurrentImage(newItem);
         setCredits(prev => Math.max(0, prev - 1));
         setLoadingProgress(100);
         showToast("4K Mastery Achieved.");
-        setTimeout(() => setIsUpscaling(false), 300);
+        setTimeout(() => setIsUpscaling(false), 500);
       }
     } catch (error) {
       setIsUpscaling(false);
@@ -309,18 +325,11 @@ const App: React.FC = () => {
   };
 
   const handleCreateVariations = async () => {
-    if (credits <= 0) {
-      showToast("Insufficient credits.", "error");
-      return;
-    }
-    if (!currentImage || isVariationsLoading) return;
-    
+    if (credits <= 0 || !currentImage || isVariationsLoading) return;
     const apiKey = process.env.API_KEY;
     if (!apiKey) return;
-
     setIsVariationsLoading(true);
     showToast("Deploying Variant Swarm...", "info");
-
     try {
       const ai = new GoogleGenAI({ apiKey });
       const swarmPromises = [1, 2, 3, 4].map(async () => {
@@ -337,7 +346,6 @@ const App: React.FC = () => {
         }
         return null;
       });
-
       const results = await Promise.all(swarmPromises);
       const validResults: HistoryItem[] = results
         .filter((url): url is string => url !== null)
@@ -352,7 +360,6 @@ const App: React.FC = () => {
           generationTime: 1.5,
           isFavorite: false
         }));
-
       if (validResults.length > 0) {
         setHistory(prev => [...validResults, ...prev]);
         setCurrentImage(validResults[0]);
@@ -360,7 +367,7 @@ const App: React.FC = () => {
         showToast(`Swarm Sync Complete.`);
       }
       setLoadingProgress(100);
-      setTimeout(() => setIsVariationsLoading(false), 400);
+      setTimeout(() => setIsVariationsLoading(false), 600);
     } catch (error) {
       setIsVariationsLoading(false);
       showToast("Swarm Protocol Failed.", "error");
@@ -377,9 +384,10 @@ const App: React.FC = () => {
     return <LandingPage onEnter={handleLogin} />;
   }
 
+  const currentLoadingStepText = isUpscaling ? UPSCALE_STEPS[loadingStep] : (isVariationsLoading ? VARIATION_STEPS[loadingStep] : LOADING_STEPS[loadingStep]);
+
   return (
     <div className="flex min-h-screen bg-[#030712] overflow-hidden text-slate-200">
-      {/* Toast Overlay */}
       <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[300] flex flex-col items-center gap-3 pointer-events-none">
         {toasts.map(toast => (
           <div key={toast.id} className="pointer-events-auto glass px-6 py-4 rounded-3xl flex items-center gap-3 shadow-3xl animate-in slide-in-from-top-6 fade-in duration-500 border-white/20">
@@ -424,20 +432,13 @@ const App: React.FC = () => {
                 <h1 className="text-3xl md:text-5xl font-black tracking-tighter logo-gradient uppercase text-white">BAMANIA AI</h1>
               </div>
             </div>
-
             <div className="flex items-center gap-4">
-              <button 
-                onClick={resetToDashboard}
-                className={`p-3 glass rounded-2xl border border-white/10 hover:bg-blue-500/10 hover:border-blue-500/30 transition-all group flex items-center gap-2 ${!currentImage ? 'opacity-30 cursor-not-allowed' : ''}`}
-                disabled={!currentImage}
-                title="Back to Dashboard"
-              >
-                <HomeIcon className="w-6 h-6 text-blue-400 group-hover:scale-110 transition-transform" />
-                <span className="hidden md:block text-[10px] font-black uppercase tracking-widest text-blue-400">Dashboard</span>
+              <button onClick={handleGenerateNew} className={`p-4 glass rounded-[24px] border border-white/10 hover:bg-blue-500/10 hover:border-blue-500/30 transition-all group flex items-center gap-3 ${(!currentImage && !isLoading) ? 'opacity-30 cursor-not-allowed' : ''}`} disabled={!currentImage && !isLoading} title="New Synthesis Session">
+                <HomeIcon className="w-5 h-5 text-blue-400 group-hover:scale-110 transition-transform" />
+                <span className="hidden md:block text-[11px] font-black uppercase tracking-widest text-blue-400">Generate New</span>
               </button>
             </div>
           </div>
-
           <div className="flex flex-wrap items-center gap-4 justify-center mt-6">
             <div className="flex items-center gap-3 glass px-6 py-3 rounded-full border border-white/10 shadow-2xl">
               <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_12px_rgba(34,197,94,0.6)]"></div>
@@ -451,35 +452,12 @@ const App: React.FC = () => {
         </header>
 
         <div className="w-full max-w-5xl flex flex-col items-center gap-12 pb-72">
-          {/* Main Visual Stage */}
           <div className={`group w-full aspect-square relative glass rounded-[56px] overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.7)] border border-white/10 transition-all duration-1000 ${currentImage ? 'cursor-zoom-in hover:border-blue-500/20' : ''}`} onClick={() => currentImage && setIsZoomed(true)}>
             {(isLoading || isUpscaling || isVariationsLoading) && (
-              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#030712]/98 backdrop-blur-3xl">
-                <div className="absolute top-0 left-0 right-0 h-1.5 bg-blue-500 shadow-[0_0_25px_rgba(59,130,246,0.9)] animate-[scanline_2s_linear_infinite]"></div>
-                <div className="relative flex flex-col items-center max-w-sm w-full px-10">
-                  <div className="w-64 h-64 mb-20 flex items-center justify-center relative">
-                    <div className="absolute inset-0 border-[12px] border-white/5 rounded-full"></div>
-                    <div className="absolute inset-0 border-[12px] border-blue-500 border-t-transparent rounded-full animate-spin duration-[2.5s] linear"></div>
-                    <SparkleIcon className="w-24 h-24 text-blue-400 animate-pulse" />
-                  </div>
-                  <div className="w-full space-y-10 text-center">
-                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden p-[1px] border border-white/5">
-                      <div className="h-full bg-blue-500 transition-all duration-700 shadow-[0_0_20px_rgba(59,130,246,0.5)]" style={{ width: `${loadingProgress}%` }}></div>
-                    </div>
-                    <p className="text-3xl font-black text-white uppercase tracking-[0.25em] animate-pulse">
-                      {isUpscaling ? UPSCALE_STEPS[loadingStep] : (isVariationsLoading ? VARIATION_STEPS[loadingStep] : LOADING_STEPS[loadingStep])}
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <SkeletonLoader progress={loadingProgress} stepText={currentLoadingStepText} />
             )}
-
             {currentImage ? (
-              <img 
-                src={currentImage.imageUrl} 
-                alt={currentImage.prompt} 
-                className={`w-full h-full object-cover transition-all duration-1000 ${isLoading || isVariationsLoading ? 'opacity-0 scale-110 blur-3xl' : 'opacity-100 scale-100 blur-0'}`} 
-              />
+              <img src={currentImage.imageUrl} alt={currentImage.prompt} className={`w-full h-full object-cover transition-all duration-1000 ${isLoading || isVariationsLoading ? 'opacity-0 scale-110 blur-3xl' : 'opacity-100 scale-100 blur-0'}`} />
             ) : (
               !isLoading && (
                 <div className="h-full flex flex-col items-center justify-center text-center p-20 space-y-10 group/placeholder relative overflow-hidden">
@@ -494,7 +472,6 @@ const App: React.FC = () => {
                 </div>
               )
             )}
-            
             {currentImage && !isLoading && !isUpscaling && !isVariationsLoading && (
               <div className="absolute bottom-0 left-0 right-0 p-14 bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none">
                 <p className="text-white text-2xl font-bold italic line-clamp-2 leading-relaxed opacity-90 tracking-tight">"{currentImage.prompt}"</p>
@@ -504,12 +481,13 @@ const App: React.FC = () => {
 
           {currentImage && !isLoading && !isUpscaling && !isVariationsLoading && (
             <div className="flex flex-wrap items-center justify-center gap-5 animate-in fade-in slide-in-from-bottom-10 duration-700">
-              <button 
-                onClick={resetToDashboard}
-                className="px-8 py-5 glass rounded-3xl border border-blue-500/30 text-blue-200 font-black uppercase text-[12px] tracking-widest hover:bg-blue-500/20 hover:scale-105 transition-all shadow-3xl flex items-center gap-3"
-              >
-                <HomeIcon className="w-4 h-4" />
-                New Synthesis
+              <button onClick={handleGenerateNew} className="px-10 py-5 glass rounded-3xl border border-blue-500/30 text-blue-200 font-black uppercase text-[12px] tracking-widest hover:bg-blue-500/20 hover:scale-105 transition-all shadow-3xl flex items-center gap-3 group">
+                <HomeIcon className="w-4 h-4 text-blue-400 group-hover:scale-110" />
+                Generate New
+              </button>
+              <button onClick={executeRegenerate} disabled={credits <= 0} className="px-10 py-5 glass rounded-3xl border border-blue-400/20 text-blue-300 font-black uppercase text-[12px] tracking-widest hover:bg-blue-400/10 hover:scale-105 transition-all shadow-3xl flex items-center gap-3 group">
+                <BoltIcon className="w-4 h-4 text-blue-400 group-hover:rotate-12" />
+                Regenerate
               </button>
               <button onClick={() => setShowUpscaleConfirm(true)} disabled={currentImage.isUpscaled || credits <= 0} className="px-10 py-5 glass rounded-3xl border border-purple-500/30 text-purple-200 font-black uppercase text-[12px] tracking-widest hover:bg-purple-500/20 hover:scale-105 transition-all disabled:opacity-30 shadow-3xl">
                 {currentImage.isUpscaled ? '4K Master Archive' : 'Refine to 4K Master (-1)'}
@@ -530,13 +508,11 @@ const App: React.FC = () => {
             </div>
           )}
 
-          {/* Neural Archive Grid */}
           <section className="w-full mt-24 animate-in fade-in slide-in-from-bottom-20 duration-1000">
              <div className="flex items-center gap-10 mb-14 px-2">
                <h2 className="text-3xl font-black uppercase tracking-[0.5em] text-white">Neural Archive</h2>
                <div className="h-px flex-1 bg-gradient-to-r from-blue-500/60 via-blue-500/5 to-transparent"></div>
              </div>
-             
              {history.length > 0 ? (
                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 md:gap-8 px-2">
                  {history.map((item) => (
@@ -557,11 +533,9 @@ const App: React.FC = () => {
              )}
           </section>
         </div>
-
         <InputBar ref={inputBarRef} credits={credits} currentUser={currentUser || ''} onGenerate={handleGenerate} onEnhance={enhancePrompt} isLoading={isLoading || isVariationsLoading || isUpscaling} />
       </main>
 
-      {/* Wipe Confirmation Overlay */}
       {showClearConfirm && (
         <div className="fixed inset-0 z-[420] bg-black/95 backdrop-blur-3xl flex items-center justify-center p-8 animate-in zoom-in-95 duration-500">
           <div className="glass max-w-md w-full p-16 rounded-[64px] border border-red-500/20 shadow-3xl text-center">
@@ -575,7 +549,6 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* 4K Link Overlay */}
       {showUpscaleConfirm && (
         <div className="fixed inset-0 z-[420] bg-black/95 backdrop-blur-3xl flex items-center justify-center p-8 animate-in zoom-in-95 duration-500">
           <div className="glass max-w-md w-full p-16 rounded-[64px] border border-purple-500/20 shadow-3xl text-center">
@@ -590,7 +563,6 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* Zoom Preview Overlay */}
       {isZoomed && currentImage && (
         <div className="fixed inset-0 z-[400] bg-black/98 backdrop-blur-4xl flex items-center justify-center p-6 cursor-zoom-out animate-in fade-in duration-500" onClick={() => setIsZoomed(false)}>
           <img src={currentImage.imageUrl} className="max-w-full max-h-full object-contain rounded-[40px] shadow-3xl border border-white/20" />
