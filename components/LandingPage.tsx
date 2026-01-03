@@ -247,7 +247,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
           </div>
           
           <div className="mt-16 opacity-30">
-            <p className="text-[10px] font-mono font-bold tracking-[0.4em] uppercase text-gray-500">Neural Sync is currently in Developer Mode (Bypassing Mobile Carriers)</p>
+            <p className="text-[10px] font-mono font-bold tracking-[0.4em] uppercase text-gray-500">Every unique number grants 10 Daily Neural Credits</p>
           </div>
         </div>
       </main>

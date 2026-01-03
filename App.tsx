@@ -12,6 +12,14 @@ const SparkleIcon = ({ className = "w-6 h-6" }) => (
   </svg>
 );
 
+const BoltIcon = ({ className = "w-4 h-4" }) => (
+  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+    <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+  </svg>
+);
+
+const MAX_DAILY_CREDITS = 10;
+
 const LOADING_STEPS = [
   "Initializing Neural Pathways...",
   "Consulting Gemini Intelligence...",
@@ -40,7 +48,7 @@ const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [view, setView] = useState<ViewState>('landing');
   const [history, setHistory] = useState<HistoryItem[]>([]);
-  const [credits, setCredits] = useState<number>(8);
+  const [credits, setCredits] = useState<number>(MAX_DAILY_CREDITS);
   const [currentImage, setCurrentImage] = useState<HistoryItem | null>(null);
   const [variations, setVariations] = useState<HistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -65,7 +73,9 @@ const App: React.FC = () => {
     if (currentUser) {
       const storageKey = `bamania_history_${currentUser}`;
       const creditKey = `bamania_credits_${currentUser}`;
+      const refreshKey = `bamania_last_refresh_${currentUser}`;
       
+      // History Loading
       const saved = localStorage.getItem(storageKey);
       if (saved) {
         try {
@@ -80,11 +90,21 @@ const App: React.FC = () => {
         setCurrentImage(null);
       }
 
+      // Daily Credit Refresh Logic
+      const today = new Date().toISOString().split('T')[0];
+      const lastRefresh = localStorage.getItem(refreshKey);
       const savedCredits = localStorage.getItem(creditKey);
-      if (savedCredits !== null) {
+
+      if (lastRefresh !== today) {
+        // New day! Reset credits
+        setCredits(MAX_DAILY_CREDITS);
+        localStorage.setItem(refreshKey, today);
+        localStorage.setItem(creditKey, MAX_DAILY_CREDITS.toString());
+        showToast(`New cycle detected. Daily credits restored to ${MAX_DAILY_CREDITS}.`);
+      } else if (savedCredits !== null) {
         setCredits(parseInt(savedCredits, 10));
       } else {
-        setCredits(8);
+        setCredits(MAX_DAILY_CREDITS);
       }
     }
   }, [currentUser]);
@@ -151,7 +171,7 @@ const App: React.FC = () => {
   const handleLogout = () => {
     setCurrentUser(null);
     setHistory([]);
-    setCredits(8);
+    setCredits(MAX_DAILY_CREDITS);
     setCurrentImage(null);
     setVariations([]);
     setView('landing');
@@ -159,8 +179,8 @@ const App: React.FC = () => {
   };
 
   const handleRefillCredits = () => {
-    setCredits(8);
-    showToast("Neural Credits Restored to 8.");
+    setCredits(MAX_DAILY_CREDITS);
+    showToast(`Neural Credits Restored to ${MAX_DAILY_CREDITS}.`);
   };
 
   const verifyImage = async (url: string, timeoutMs: number = 40000): Promise<boolean> => {
@@ -416,6 +436,10 @@ const App: React.FC = () => {
     setCurrentImage(item);
   };
 
+  const handleShowBalance = () => {
+    showToast(`Neural Capacity: ${credits}/${MAX_DAILY_CREDITS}. Refreshing daily.`, credits < 3 ? 'error' : 'success');
+  };
+
   if (view === 'landing' || !currentUser) {
     return <LandingPage onEnter={handleLogin} />;
   }
@@ -449,7 +473,7 @@ const App: React.FC = () => {
 
       <main className="flex-1 relative flex flex-col items-center justify-start p-4 lg:ml-80 transition-all overflow-y-auto custom-scrollbar">
         <header className="w-full max-w-4xl pt-8 pb-12 flex flex-col items-center text-center relative z-30">
-          <div className="flex items-center gap-4 mb-2">
+          <div className="flex items-center gap-4 mb-4">
             <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-2.5 glass rounded-xl border border-white/10">
               <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
             </button>
@@ -458,13 +482,26 @@ const App: React.FC = () => {
               <h1 className="text-3xl font-black tracking-tighter logo-gradient uppercase text-white">BAMANIA AI</h1>
             </div>
           </div>
-          <div className="flex items-center gap-4 justify-center">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-4 justify-center">
+            <div className="flex items-center gap-2 glass px-4 py-2 rounded-full border border-white/5">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
               <span className="text-[10px] font-black tracking-[0.4em] text-gray-500 uppercase">Neural ID: {currentUser}</span>
             </div>
-            <div className="h-3 w-px bg-white/10"></div>
-            <span className="text-[10px] font-black tracking-[0.4em] text-blue-500/80 uppercase">Synced</span>
+            
+            <button 
+              onClick={handleShowBalance}
+              className={`flex items-center gap-2.5 px-5 py-2 rounded-full border transition-all duration-300 group hover:scale-105 active:scale-95 shadow-lg ${
+                credits === 0 
+                ? 'bg-red-500/10 border-red-500/20 text-red-400' 
+                : 'glass border-blue-500/20 text-blue-400'
+              }`}
+            >
+              <BoltIcon className={`${credits === 0 ? 'text-red-500' : 'text-blue-500'} group-hover:animate-pulse`} />
+              <span className="text-[11px] font-black uppercase tracking-widest">{credits} / 10 <span className="text-[9px] opacity-40 ml-1">Credits</span></span>
+            </button>
+
+            <div className="h-4 w-px bg-white/10 hidden md:block"></div>
+            <span className="text-[10px] font-black tracking-[0.4em] text-blue-500/80 uppercase hidden md:inline-block">Status: Synced</span>
           </div>
         </header>
 

@@ -139,16 +139,15 @@ const Sidebar: React.FC<SidebarProps> = ({
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">Neural Credits</span>
-              <span className={`text-[10px] font-black font-mono ${credits === 0 ? 'text-red-500' : 'text-blue-500'}`}>{credits} / 8</span>
+              <span className={`text-[10px] font-black font-mono ${credits === 0 ? 'text-red-500' : 'text-blue-500'}`}>{credits} / 10</span>
             </div>
             <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-              <div className={`h-full transition-all duration-700 ${credits === 0 ? 'bg-red-500' : 'bg-blue-600'}`} style={{ width: `${(credits / 8) * 100}%` }}></div>
+              <div className={`h-full transition-all duration-700 ${credits === 0 ? 'bg-red-500' : 'bg-blue-600'}`} style={{ width: `${(credits / 10) * 100}%` }}></div>
             </div>
             <button onClick={onRefillCredits} className="w-full py-2.5 glass border border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-blue-400 hover:bg-blue-500/5 transition-all">Refill Link</button>
           </div>
           <div className="flex items-center justify-between opacity-30 pt-2">
             <span className="text-[8px] font-black uppercase tracking-[0.4em] text-gray-500">Secure Protocol v2.5</span>
-            {/* Fix: Use onClear prop instead of undefined setShowClearConfirm */}
             <button onClick={onClear} className="text-[8px] font-black uppercase tracking-widest text-red-500 hover:opacity-100 transition-opacity">Flush DB</button>
           </div>
         </div>
