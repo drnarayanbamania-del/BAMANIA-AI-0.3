@@ -17,7 +17,7 @@ export interface InputBarHandle {
 const MAX_SEED = 2147483647;
 const MIN_SEED = 0;
 
-const RESOLUTIONS: Resolution[] = ['512x512', '1024x1024', '1536x1536'];
+const RESOLUTIONS: Resolution[] = ['512x512', '1024x1024', '1536x1536', '2048x2048'];
 
 const InputBar = forwardRef<InputBarHandle, InputBarProps>(({ onGenerate, onEnhance, isLoading, credits, currentUser }, ref) => {
   const [prompt, setPrompt] = useState('');
@@ -25,9 +25,9 @@ const InputBar = forwardRef<InputBarHandle, InputBarProps>(({ onGenerate, onEnha
   const [resolution, setResolution] = useState<Resolution>('1024x1024');
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
+  const [showResMenu, setShowResMenu] = useState(false);
   const [savedPrompts, setSavedPrompts] = useState<SavedPrompt[]>([]);
 
-  // Load saved prompts on mount or user change
   useEffect(() => {
     const saved = localStorage.getItem(`bamania_saved_${currentUser}`);
     if (saved) {
@@ -89,7 +89,12 @@ const InputBar = forwardRef<InputBarHandle, InputBarProps>(({ onGenerate, onEnha
     const updated = [newSaved, ...savedPrompts];
     setSavedPrompts(updated);
     localStorage.setItem(`bamania_saved_${currentUser}`, JSON.stringify(updated));
-    setShowLibrary(true);
+    showToastLocal("Prompt Saved to Archive.");
+  };
+
+  const showToastLocal = (msg: string) => {
+    // Note: The parent App handles toasts, but for internal library feedback we keep it simple
+    console.log(msg);
   };
 
   const handleDeleteSaved = (id: string, e: React.MouseEvent) => {
@@ -158,24 +163,50 @@ const InputBar = forwardRef<InputBarHandle, InputBarProps>(({ onGenerate, onEnha
       <div className="flex flex-col gap-3">
         <form 
           onSubmit={handleSubmit}
-          className={`glass p-3 rounded-[32px] flex flex-wrap md:flex-nowrap items-center gap-3 shadow-[0_40px_100px_rgba(0,0,0,0.8)] border border-white/10 backdrop-blur-3xl transition-all duration-700 ${isEnhancing ? 'ring-2 ring-purple-500/40 shadow-purple-500/10' : ''} ${isOutOfCredits ? 'border-red-500/30' : ''}`}
+          className={`glass p-2 rounded-[32px] flex flex-wrap md:flex-nowrap items-center gap-2 shadow-[0_40px_100px_rgba(0,0,0,0.8)] border border-white/10 backdrop-blur-3xl transition-all duration-700 ${isEnhancing ? 'ring-2 ring-purple-500/40 shadow-purple-500/10' : ''} ${isOutOfCredits ? 'border-red-500/30' : 'focus-within:border-blue-500/30'}`}
         >
+          {/* Resolution Selector */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowResMenu(!showResMenu)}
+              className="px-5 py-4 glass border border-white/5 rounded-2xl text-[10px] font-black text-blue-400 uppercase tracking-widest hover:bg-white/5 transition-all flex items-center gap-2"
+            >
+              {resolution}
+              <svg className={`w-3 h-3 transition-transform ${showResMenu ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" /></svg>
+            </button>
+            {showResMenu && (
+              <div className="absolute bottom-full left-0 mb-3 glass rounded-2xl border border-white/10 shadow-2xl p-2 min-w-[140px] animate-in slide-in-from-bottom-2 fade-in">
+                {RESOLUTIONS.map((res) => (
+                  <button
+                    key={res}
+                    type="button"
+                    onClick={() => { setResolution(res); setShowResMenu(false); }}
+                    className={`w-full text-left px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${resolution === res ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+                  >
+                    {res}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Prompt Input Area */}
-          <div className="flex-1 min-w-[240px] px-6 py-2 border-r border-white/10 relative overflow-hidden group">
+          <div className="flex-1 min-w-[240px] px-6 py-2 relative overflow-hidden group">
             {isEnhancing && <div className="absolute inset-0 shimmer opacity-20 z-0"></div>}
             <input
               type="text"
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder={isOutOfCredits ? "Daily credits depleted. Link required..." : (isEnhancing ? "Gemini is dreaming up patterns..." : "Enter neural visual protocol...")}
+              placeholder={isOutOfCredits ? "Daily credits depleted. Link required..." : (isEnhancing ? "Gemini is dreaming up patterns..." : "Type your visual imagination...")}
               className={`w-full bg-transparent border-none outline-none placeholder-gray-600 text-[17px] font-medium relative z-10 disabled:opacity-50 tracking-tight ${isOutOfCredits ? 'text-red-400' : 'text-white'}`}
               disabled={isLoading || isEnhancing || isOutOfCredits}
             />
           </div>
 
           {/* Seed Input */}
-          <div className="w-32 px-4 py-2 border-r border-white/10 hidden md:flex items-center gap-2">
-             <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">S:</span>
+          <div className="w-28 px-4 py-2 hidden md:flex items-center gap-2">
+            <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">SEED:</span>
             <input
               type="number"
               value={seed}
@@ -189,16 +220,16 @@ const InputBar = forwardRef<InputBarHandle, InputBarProps>(({ onGenerate, onEnha
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-3 pr-2 ml-auto">
+          <div className="flex items-center gap-2 pr-1 ml-auto">
             <button
               type="button"
               onClick={handleEnhance}
-              title="Gemini Intelligence Enhance"
+              title="Magic Enhance with Gemini"
               disabled={!prompt.trim() || isEnhancing || isLoading || isOutOfCredits}
-              className={`flex items-center justify-center p-4 rounded-2xl transition-all duration-500 disabled:opacity-30 group relative shadow-inner overflow-hidden border ${
+              className={`flex items-center justify-center p-4 rounded-2xl transition-all duration-500 disabled:opacity-30 group relative border ${
                 isEnhancing 
                 ? 'bg-purple-600/30 text-purple-100 border-purple-500/50 scale-105 shadow-[0_0_20px_rgba(168,85,247,0.5)]' 
-                : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10 text-white hover:scale-105 active:scale-90'
+                : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10 text-white active:scale-90'
               }`}
             >
               {isEnhancing ? (
@@ -213,7 +244,7 @@ const InputBar = forwardRef<InputBarHandle, InputBarProps>(({ onGenerate, onEnha
             <button
               type="button"
               onClick={handleSavePrompt}
-              title="Commit to Bank"
+              title="Save to Library"
               disabled={!prompt.trim() || isLoading || isEnhancing}
               className="flex items-center justify-center p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 text-white hover:scale-105 active:scale-90 transition-all group"
             >
@@ -225,7 +256,7 @@ const InputBar = forwardRef<InputBarHandle, InputBarProps>(({ onGenerate, onEnha
             <button
               type="button"
               onClick={() => setShowLibrary(!showLibrary)}
-              title="Open Seed Bank"
+              title="Open Library"
               className={`flex items-center justify-center p-4 rounded-2xl transition-all duration-500 group border ${showLibrary ? 'bg-blue-600/30 border-blue-500/50 text-blue-400' : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10 text-white active:scale-90'}`}
             >
               <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -236,14 +267,14 @@ const InputBar = forwardRef<InputBarHandle, InputBarProps>(({ onGenerate, onEnha
             <button
               type="submit"
               disabled={!prompt.trim() || isLoading || isEnhancing || isOutOfCredits}
-              className={`px-10 py-4 rounded-2xl font-black text-[13px] hover:scale-105 active:scale-[0.94] transition-all duration-500 disabled:opacity-30 disabled:scale-100 flex items-center gap-3 shadow-2xl border ${isOutOfCredits ? 'bg-red-600/20 text-red-500 border-red-500/40' : 'bg-white text-black border-white'}`}
+              className={`px-8 py-4 rounded-2xl font-black text-[13px] hover:scale-105 active:scale-[0.94] transition-all duration-500 disabled:opacity-30 disabled:scale-100 flex items-center gap-3 shadow-2xl border ${isOutOfCredits ? 'bg-red-600/20 text-red-500 border-red-500/40' : 'bg-blue-600 text-white border-blue-500'}`}
             >
               {isLoading ? (
-                <div className="w-5 h-5 border-[3px] border-black/20 border-t-black rounded-full animate-spin"></div>
+                <div className="w-5 h-5 border-[3px] border-white/20 border-t-white rounded-full animate-spin"></div>
               ) : (
                 <>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                  <span className="uppercase tracking-[0.1em]">{isOutOfCredits ? 'Link Lost' : 'Synchronize'}</span>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                  <span className="uppercase tracking-[0.1em]">{isOutOfCredits ? 'Link Lost' : 'Generate Image'}</span>
                 </>
               )}
             </button>
