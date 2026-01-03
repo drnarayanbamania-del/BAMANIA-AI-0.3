@@ -64,13 +64,16 @@ const InputBar = forwardRef<InputBarHandle, InputBarProps>(({ onGenerate, onEnha
     }
   };
 
+  const handleRandomSeed = () => {
+    const randomVal = Math.floor(Math.random() * (MAX_SEED + 1));
+    setSeed(randomVal.toString());
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (prompt.trim() && !isLoading && !isEnhancing && credits > 0) {
       const seedNum = seed.trim() !== '' ? parseInt(seed, 10) : undefined;
       onGenerate(prompt, seedNum, resolution);
-      // Clear prompt immediately for next generation
-      setPrompt('');
     }
   };
 
@@ -193,7 +196,7 @@ const InputBar = forwardRef<InputBarHandle, InputBarProps>(({ onGenerate, onEnha
           </div>
 
           {/* Prompt Input Area */}
-          <div className="flex-1 min-w-[240px] px-6 py-2 relative overflow-hidden group">
+          <div className="flex-1 min-w-[200px] px-6 py-2 relative overflow-hidden group">
             {isEnhancing && <div className="absolute inset-0 shimmer opacity-20 z-0"></div>}
             <input
               type="text"
@@ -205,19 +208,34 @@ const InputBar = forwardRef<InputBarHandle, InputBarProps>(({ onGenerate, onEnha
             />
           </div>
 
-          {/* Seed Input */}
-          <div className="w-28 px-4 py-2 hidden md:flex items-center gap-2">
-            <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">SEED:</span>
-            <input
-              type="number"
-              value={seed}
-              onChange={handleSeedChange}
-              placeholder="Auto"
-              min={MIN_SEED}
-              max={MAX_SEED}
-              className="w-full bg-transparent border-none outline-none text-white placeholder-gray-700 text-[13px] font-bold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              disabled={isLoading || isEnhancing || isOutOfCredits}
-            />
+          {/* Advanced Seed Controls */}
+          <div className="flex items-center gap-2 glass px-4 py-2 rounded-2xl border border-white/5 bg-black/20">
+            <div className="flex flex-col">
+              <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest mb-0.5">Seed Control</span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  value={seed}
+                  onChange={handleSeedChange}
+                  placeholder="AUTO"
+                  min={MIN_SEED}
+                  max={MAX_SEED}
+                  className="w-20 bg-transparent border-none outline-none text-white placeholder-gray-700 text-[12px] font-bold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none focus:text-blue-400 transition-colors"
+                  disabled={isLoading || isEnhancing || isOutOfCredits}
+                />
+                <button
+                  type="button"
+                  onClick={handleRandomSeed}
+                  disabled={isLoading || isEnhancing || isOutOfCredits}
+                  title="Randomize Seed"
+                  className="p-1.5 glass rounded-lg border border-white/10 hover:bg-white/10 text-gray-400 hover:text-white transition-all active:rotate-180 duration-500"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Action Buttons */}
