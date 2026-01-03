@@ -22,7 +22,7 @@ const BoltIcon = ({ className = "w-4 h-4" }) => (
 
 const WhatsAppIcon = ({ className = "w-5 h-5" }) => (
   <svg className={className} fill="currentColor" viewBox="0 0 24 24">
-    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.438 9.889-9.886.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.894 4.44-9.897 9.887-.001 2.155.593 4.256 1.72 6.038l-1.102 4.025 4.149-1.087zm11.646-7.391c-.301-.15-1.78-.879-2.056-.979-.275-.1-.475-.15-.675.15-.199.3-.775.979-.95 1.179-.175.199-.349.225-.65.075-.301-.15-1.27-.467-2.42-1.493-.894-.797-1.496-1.782-1.672-2.081-.175-.3-.019-.462.131-.611.135-.134.301-.351.45-.525.15-.175.199-.3.3-.5.1-.199.05-.374-.025-.525-.075-.15-.675-1.625-.925-2.225-.244-.589-.491-.51-.675-.519-.174-.009-.374-.01-.574-.01s-.525.075-.8.375c-.275.3-1.05 1.025-1.05 2.5s1.075 2.925 1.225 3.125c.15.199 2.113 3.227 5.118 4.524.714.309 1.273.493 1.708.632.717.228 1.369.196 1.885.119.574-.085 1.78-.727 2.03-1.43.25-.702.25-1.303.175-1.43-.075-.127-.275-.226-.575-.376z"/>
+    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338-11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.438 9.889-9.886.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.894 4.44-9.897 9.887-.001 2.155.593 4.256 1.72 6.038l-1.102 4.025 4.149-1.087zm11.646-7.391c-.301-.15-1.78-.879-2.056-.979-.275-.1-.475-.15-.675.15-.199.3-.775.979-.95 1.179-.175.199-.349.225-.65.075-.301-.15-1.27-.467-2.42-1.493-.894-.797-1.496-1.782-1.672-2.081-.175-.3-.019-.462.131-.611.135-.134.301-.351.45-.525.15-.175.199-.3.3-.5.1-.199.05-.374-.025-.525-.075-.15-.675-1.625-.925-2.225-.244-.589-.491-.51-.675-.519-.174-.009-.374-.01-.574-.01s-.525.075-.8.375c-.275.3-1.05 1.025-1.05 2.5s1.075 2.925 1.225 3.125c.15.199 2.113 3.227 5.118 4.524.714.309 1.273.493 1.708.632.717.228 1.369.196 1.885.119.574-.085 1.78-.727 2.03-1.43.25-.702.25-1.303.175-1.43-.075-.127-.275-.226-.575-.376z"/>
   </svg>
 );
 
@@ -30,19 +30,26 @@ const MAX_DAILY_CREDITS = 8;
 const MAX_HISTORY_LIMIT = 20;
 
 const LOADING_STEPS = [
-  "Initializing Neural Pathways...",
-  "Consulting Gemini Intelligence...",
-  "Synthesizing Pixels...",
-  "Applying Textural Depth...",
-  "Polishing Visual Fidelity...",
-  "Finalizing Masterpiece...",
+  "Mapping Neural Pathways...",
+  "Querying Gemini Engine...",
+  "Synthesizing High-Detail Fragments...",
+  "Applying Chromatic Aberration...",
+  "Optimizing Visual Spectral Density...",
+  "Exporting Neural Construct...",
 ];
 
 const UPSCALE_STEPS = [
-  "Sampling Texture Data...",
-  "Enhancing Edge Fidelity...",
-  "Refining Spectral Detail...",
-  "Finalizing Ultra-HD Export...",
+  "Interpolating Spatial Data...",
+  "Reconstructing Edge Integrity...",
+  "Enhancing Texture Resolution...",
+  "Finalizing Ultra-HD Master...",
+];
+
+const VARIATION_STEPS = [
+  "Sampling Latent Dimensions...",
+  "Branching Visual Pathways...",
+  "Synthesizing Pattern Swarm...",
+  "Polishing Visual Iterations...",
 ];
 
 interface Toast {
@@ -76,7 +83,6 @@ const App: React.FC = () => {
     setApiReady(isApiKeyConfigured());
   }, []);
 
-  // Load User Data
   useEffect(() => {
     if (currentUser) {
       const storageKey = `bamania_history_${currentUser}`;
@@ -93,12 +99,9 @@ const App: React.FC = () => {
           } else {
             setHistory([]);
           }
-        } else {
-          setHistory([]);
-          setCurrentImage(null);
         }
       } catch (e) {
-        console.error("Corrupt user data reset.");
+        console.error("Neural state mismatch. Resetting archive.");
         setHistory([]);
       }
 
@@ -118,14 +121,12 @@ const App: React.FC = () => {
     }
   }, [currentUser]);
 
-  // Persistent History
   useEffect(() => {
     if (currentUser) {
       const limitedHistory = history.slice(0, MAX_HISTORY_LIMIT);
       try {
         localStorage.setItem(`bamania_history_${currentUser}`, JSON.stringify(limitedHistory));
       } catch (e) {
-        console.warn("Storage quota limit. Pruning archive.");
         localStorage.setItem(`bamania_history_${currentUser}`, JSON.stringify(history.slice(0, 5)));
       }
     }
@@ -140,25 +141,22 @@ const App: React.FC = () => {
   useEffect(() => {
     let stepInterval: number;
     let progressInterval: number;
-
     const activeLoading = isLoading || isVariationsLoading || isUpscaling;
-    const steps = isUpscaling ? UPSCALE_STEPS : LOADING_STEPS;
+    const steps = isUpscaling ? UPSCALE_STEPS : (isVariationsLoading ? VARIATION_STEPS : LOADING_STEPS);
 
     if (activeLoading) {
       setLoadingStep(0);
       setLoadingProgress(5);
       stepInterval = window.setInterval(() => {
         setLoadingStep(prev => (prev + 1) % steps.length);
-      }, isUpscaling ? 800 : 1000);
+      }, isUpscaling ? 900 : (isVariationsLoading ? 800 : 1200));
 
       progressInterval = window.setInterval(() => {
         setLoadingProgress(prev => {
           if (prev >= 95) return 95;
-          return prev + Math.random() * 5;
+          return prev + Math.random() * (isVariationsLoading ? 3 : 4);
         });
-      }, 200);
-    } else {
-      setLoadingProgress(0);
+      }, 150);
     }
 
     return () => {
@@ -172,13 +170,13 @@ const App: React.FC = () => {
     setToasts(prev => [...prev, { id, message, type }]);
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
-    }, 4500);
+    }, 4000);
   };
 
   const handleLogin = (id: string) => {
     setCurrentUser(id);
     setView('app');
-    showToast(`Neural Link Synchronized. Welcome.`, "success");
+    showToast(`Neural Authorization Success.`, "success");
   };
 
   const handleLogout = () => {
@@ -186,25 +184,24 @@ const App: React.FC = () => {
     setHistory([]);
     setCredits(MAX_DAILY_CREDITS);
     setCurrentImage(null);
-    setVariations([]);
     setView('landing');
-    showToast("Session Terminated.", "info");
+    showToast("Identity Logged Out.", "info");
   };
 
   const handleRefillCredits = () => {
     setCredits(MAX_DAILY_CREDITS);
-    showToast(`Daily Credits Restored.`, "success");
+    showToast(`Neural Credits Restored.`, "success");
   };
 
   const handleGenerate = useCallback(async (prompt: string, userSeed: number | undefined, resolution: Resolution) => {
     if (credits <= 0) {
-      showToast("Identity credits depleted.", "error");
+      showToast("Identity credits exhausted.", "error");
       return;
     }
 
     const apiKey = process.env.API_KEY;
     if (!apiKey) {
-      showToast("Neural Engine Offline (API Key missing).", "error");
+      showToast("Gemini Link Offline.", "error");
       return;
     }
 
@@ -243,7 +240,7 @@ const App: React.FC = () => {
           id: crypto.randomUUID(),
           prompt,
           imageUrl: base64Image,
-          seed: userSeed || 0,
+          seed: userSeed || Math.floor(Math.random() * 999999),
           timestamp: Date.now(),
           width,
           height,
@@ -255,22 +252,22 @@ const App: React.FC = () => {
         setCurrentImage(newItem);
         setCredits(prev => Math.max(0, prev - 1));
         setLoadingProgress(100);
-        setTimeout(() => setIsLoading(false), 200);
+        setTimeout(() => setIsLoading(false), 300);
         mainScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
-        throw new Error("Missing synthesis data.");
+        throw new Error("Empty buffer.");
       }
     } catch (error) {
       console.error(error);
       setIsLoading(false);
-      showToast("Neural Synthesis Fault.", "error");
+      showToast("Neural Synthesis Failed.", "error");
     }
   }, [credits]);
 
   const handleUpscaleRequest = () => {
     if (!currentImage || isUpscaling || currentImage.isUpscaled) return;
     if (credits <= 0) {
-      showToast("Capacity limit reached.", "error");
+      showToast("Insufficient credits.", "error");
       return;
     }
     setShowUpscaleConfirm(true);
@@ -285,11 +282,11 @@ const App: React.FC = () => {
 
     const startTime = performance.now();
     setIsUpscaling(true);
-    showToast("Refining Neural Textures...", "info");
+    showToast("Establishing 4K Link...", "info");
     
     try {
       const ai = new GoogleGenAI({ apiKey });
-      const upscalePrompt = `High fidelity, cinematic, hyper-realistic version of: ${currentImage.prompt}`;
+      const upscalePrompt = `Ultra high definition masterpiece, hyper-realistic details, 8k render, high contrast: ${currentImage.prompt}`;
       
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
@@ -332,13 +329,12 @@ const App: React.FC = () => {
         setCurrentImage(newItem);
         setCredits(prev => Math.max(0, prev - 1));
         setLoadingProgress(100);
-        showToast("High-Fidelity Archive Generated.");
-        setTimeout(() => setIsUpscaling(false), 200);
-        mainScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+        showToast("4K Masterpiece Generated.");
+        setTimeout(() => setIsUpscaling(false), 300);
       }
     } catch (error) {
       setIsUpscaling(false);
-      showToast("Refinement failed.", "error");
+      showToast("4K Link Failure.", "error");
     }
   };
 
@@ -353,12 +349,15 @@ const App: React.FC = () => {
     if (!apiKey) return;
 
     setIsVariationsLoading(true);
-    showToast("Synthesizing Neural Variants...", "info");
+    setLoadingProgress(10);
+    showToast("Synthesizing Neural Variant Swarm...", "info");
 
     try {
       const ai = new GoogleGenAI({ apiKey });
-      const variationPrompt = `Visual variant of: ${currentImage.prompt}`;
-      const promises = [1, 2].map(async () => {
+      // Generate 4 images in parallel for 3-4 requested
+      const variationPrompt = `Visual creative variation of this concept: ${currentImage.prompt}. Cinematic, high detail, masterpiece.`;
+      
+      const promises = [1, 2, 3, 4].map(async () => {
         const resp = await ai.models.generateContent({
           model: 'gemini-2.5-flash-image',
           contents: { parts: [{ text: variationPrompt }] },
@@ -377,24 +376,25 @@ const App: React.FC = () => {
           id: crypto.randomUUID(),
           prompt: currentImage.prompt,
           imageUrl: url,
-          seed: Math.floor(Math.random() * 10000),
+          seed: Math.floor(Math.random() * 999999),
           timestamp: Date.now() + i,
           width: currentImage.width,
           height: currentImage.height,
-          generationTime: 1.2,
+          generationTime: 1.8,
           isFavorite: false
         }));
 
       if (validResults.length > 0) {
-        setVariations(validResults);
         setHistory(prev => [...validResults, ...prev]);
+        setCurrentImage(validResults[0]); // Preview the first new variant
         setCredits(prev => Math.max(0, prev - 1));
-        showToast("Variants added to archive.");
+        showToast(`Neural Swarm Success: 4 variants established.`);
       }
-      setIsVariationsLoading(false);
+      setLoadingProgress(100);
+      setTimeout(() => setIsVariationsLoading(false), 400);
     } catch (error) {
       setIsVariationsLoading(false);
-      showToast("Variant fault.", "error");
+      showToast("Variant Swarm Failed.", "error");
     }
   };
 
@@ -411,7 +411,7 @@ const App: React.FC = () => {
     if (!currentImage) return;
     const link = document.createElement('a');
     link.href = currentImage.imageUrl;
-    link.download = `bamania-synthesis-${Date.now()}.png`;
+    link.download = `bamania-${Date.now()}.png`;
     link.click();
   };
 
@@ -420,7 +420,7 @@ const App: React.FC = () => {
     try {
       const response = await fetch(currentImage.imageUrl);
       const blob = await response.blob();
-      const file = new File([blob], 'bamania.png', { type: 'image/png' });
+      const file = new File([blob], 'synthesis.png', { type: 'image/png' });
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
@@ -429,27 +429,25 @@ const App: React.FC = () => {
         });
       } else {
         await navigator.clipboard.writeText(currentImage.imageUrl);
-        showToast("Link Copied.");
+        showToast("Image link copied.");
       }
     } catch (error) {
-      showToast("Sharing Mismatch.", "error");
+      showToast("Sharing failed.", "error");
     }
   };
 
   const handleWhatsAppShare = () => {
     if (!currentImage) return;
-    const text = encodeURIComponent(`Synthesis from Bamania AI: "${currentImage.prompt}"\n\nGenerated via Neural Engine.`);
-    const url = encodeURIComponent(window.location.href);
-    window.open(`https://wa.me/?text=${text}%20${url}`, '_blank');
+    const text = encodeURIComponent(`Check out this AI masterpiece from Bamania: "${currentImage.prompt}"\n\nGenerated with Gemini 2.5 Flash.`);
+    window.open(`https://wa.me/?text=${text}`, '_blank');
   };
 
   const confirmClearHistory = () => {
     setHistory([]);
     setCurrentImage(null);
-    setVariations([]);
     if (currentUser) localStorage.removeItem(`bamania_history_${currentUser}`);
     setShowClearConfirm(false);
-    showToast("Archive Purged.");
+    showToast("Neural Database Wiped.");
   };
 
   const handleDeleteItem = (ids: string | string[]) => {
@@ -457,25 +455,14 @@ const App: React.FC = () => {
     setHistory(prev => prev.filter(item => !idList.includes(item.id)));
     if (currentImage && idList.includes(currentImage.id)) {
       setCurrentImage(null);
-      setVariations([]);
     }
   };
 
   const handleSelectHistoryItem = (item: HistoryItem) => {
     setCurrentImage(item);
-    setVariations([]);
     setIsSidebarOpen(false);
     if (inputBarRef.current) inputBarRef.current.setPromptAndSeed(item.prompt, item.seed);
     mainScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleSelectVariation = (item: HistoryItem) => {
-    setCurrentImage(item);
-    mainScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleShowBalance = () => {
-    showToast(`Neural Link Strength: ${credits}/8 Credits.`, credits < 2 ? "error" : "info");
   };
 
   if (view === 'landing' || !currentUser) {
@@ -484,12 +471,12 @@ const App: React.FC = () => {
 
   return (
     <div className="flex min-h-screen bg-[#030712] overflow-hidden text-slate-200">
-      {/* Toast Overlay */}
-      <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[300] flex flex-col items-center gap-3 pointer-events-none">
+      {/* Toast Manager */}
+      <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[300] flex flex-col items-center gap-3 pointer-events-none">
         {toasts.map(toast => (
-          <div key={toast.id} className="pointer-events-auto glass px-6 py-3 rounded-full flex items-center gap-3 shadow-2xl animate-in slide-in-from-top-4 fade-in duration-300 border-white/10">
-            <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${toast.type === 'error' ? 'bg-red-500' : 'bg-blue-500'}`}></div>
-            <span className="text-[10px] font-black text-white uppercase tracking-widest">{toast.message}</span>
+          <div key={toast.id} className="pointer-events-auto glass px-6 py-4 rounded-3xl flex items-center gap-3 shadow-3xl animate-in slide-in-from-top-6 fade-in duration-500 border-white/20">
+            <div className={`w-2 h-2 rounded-full shadow-lg ${toast.type === 'error' ? 'bg-red-500 shadow-red-500/40' : 'bg-blue-500 shadow-blue-500/40'}`}></div>
+            <span className="text-[11px] font-black text-white uppercase tracking-[0.2em]">{toast.message}</span>
           </div>
         ))}
       </div>
@@ -509,115 +496,130 @@ const App: React.FC = () => {
         currentId={currentImage?.id}
       />
 
-      <main ref={mainScrollRef} className="flex-1 relative flex flex-col items-center justify-start p-4 lg:ml-80 transition-all overflow-y-auto custom-scrollbar scroll-smooth">
-        <header className="w-full max-w-4xl pt-8 pb-12 flex flex-col items-center text-center relative z-30">
-          <div className="flex items-center gap-4 mb-4">
-            <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-2.5 glass rounded-xl border border-white/10">
-              <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+      {/* FIXED OFFSET: lg:ml-80 to account for fixed sidebar width */}
+      <main ref={mainScrollRef} className="flex-1 relative flex flex-col items-center justify-start p-6 lg:ml-80 transition-all overflow-y-auto custom-scrollbar scroll-smooth">
+        <header className="w-full max-w-5xl pt-10 pb-16 flex flex-col items-center text-center relative z-30">
+          <div className="flex items-center gap-6 mb-6">
+            <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-3 glass rounded-2xl border border-white/10 hover:bg-white/5 transition-all">
+              <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" /></svg>
             </button>
-            <div className="flex items-center gap-3 whitespace-nowrap">
-              <SparkleIcon className="text-blue-500 logo-glow w-9 h-9 shrink-0" />
-              <h1 className="text-3xl font-black tracking-tighter logo-gradient uppercase text-white">BAMANIA AI</h1>
+            <div className="flex items-center gap-4 whitespace-nowrap group">
+              <SparkleIcon className="text-blue-500 logo-glow w-12 h-12 shrink-0 group-hover:scale-110 transition-transform" />
+              <h1 className="text-5xl font-black tracking-tighter logo-gradient uppercase text-white">BAMANIA AI</h1>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-4 justify-center">
-            <div className="flex items-center gap-2 glass px-4 py-2 rounded-full border border-white/5">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-              <span className="text-[10px] font-black tracking-[0.4em] text-gray-500 uppercase">Neural ID: {currentUser}</span>
+            <div className="flex items-center gap-3 glass px-6 py-3 rounded-full border border-white/10 shadow-2xl">
+              <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_12px_rgba(34,197,94,0.6)]"></div>
+              <span className="text-[10px] font-black tracking-[0.5em] text-gray-500 uppercase">Operator ID: {currentUser}</span>
             </div>
-            <button onClick={handleShowBalance} className={`flex items-center gap-2.5 px-5 py-2 rounded-full border transition-all duration-300 group hover:scale-105 active:scale-95 shadow-lg ${credits === 0 ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'glass border-blue-500/20 text-blue-400'}`}>
-              <BoltIcon className={`${credits === 0 ? 'text-red-500' : 'text-blue-500'} group-hover:animate-pulse`} />
-              <span className="text-[11px] font-black uppercase tracking-widest">{credits} / 8</span>
+            <button onClick={() => showToast(`Sync Strength: ${credits}/8`, "info")} className={`flex items-center gap-3 px-7 py-3 rounded-full border transition-all duration-500 group hover:scale-105 active:scale-95 shadow-2xl ${credits === 0 ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'glass border-blue-500/30 text-blue-400'}`}>
+              <BoltIcon className={`${credits === 0 ? 'text-red-500' : 'text-blue-500'} group-hover:rotate-12 transition-transform`} />
+              <span className="text-[13px] font-black uppercase tracking-widest">{credits} / 8 <span className="text-[11px] opacity-40 ml-1">Credits</span></span>
             </button>
           </div>
         </header>
 
-        <div className="w-full max-w-4xl flex flex-col items-center gap-8 pb-64">
-          <div className={`group w-full aspect-square relative glass rounded-[40px] overflow-hidden shadow-2xl border border-white/10 transition-all duration-700 ${currentImage ? 'cursor-zoom-in hover:scale-[1.01]' : ''}`} onClick={() => currentImage && setIsZoomed(true)}>
-            {(isLoading || isUpscaling) && (
-              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#030712]/95 backdrop-blur-3xl">
-                <div className="absolute top-0 left-0 right-0 h-1 bg-blue-500/50 animate-[scanline_2s_linear_infinite]"></div>
-                <div className="relative flex flex-col items-center max-w-sm w-full px-8">
-                  <div className="w-48 h-48 mb-12 flex items-center justify-center relative">
-                    <div className="absolute inset-0 border-8 border-white/5 rounded-full"></div>
-                    <div className="absolute inset-0 border-8 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                    <SparkleIcon className="w-16 h-16 text-blue-400 animate-pulse" />
+        <div className="w-full max-w-5xl flex flex-col items-center gap-12 pb-72">
+          {/* Main Stage */}
+          <div className={`group w-full aspect-square relative glass rounded-[56px] overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.7)] border border-white/10 transition-all duration-1000 ${currentImage ? 'cursor-zoom-in hover:border-blue-500/20' : ''}`} onClick={() => currentImage && setIsZoomed(true)}>
+            {(isLoading || isUpscaling || isVariationsLoading) && (
+              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#030712]/98 backdrop-blur-3xl">
+                <div className="absolute top-0 left-0 right-0 h-1.5 bg-blue-500 shadow-[0_0_25px_rgba(59,130,246,0.9)] animate-[scanline_2s_linear_infinite]"></div>
+                <div className="relative flex flex-col items-center max-w-sm w-full px-10">
+                  <div className="w-64 h-64 mb-20 flex items-center justify-center relative">
+                    <div className="absolute inset-0 border-[12px] border-white/5 rounded-full"></div>
+                    <div className="absolute inset-0 border-[12px] border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                    <SparkleIcon className="w-24 h-24 text-blue-400 animate-pulse drop-shadow-[0_0_20px_rgba(59,130,246,0.6)]" />
                   </div>
-                  <div className="w-full space-y-6 text-center">
-                    <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                      <div className="h-full bg-blue-500 transition-all duration-300" style={{ width: `${loadingProgress}%` }}></div>
+                  <div className="w-full space-y-10 text-center">
+                    <div className="h-2.5 w-full bg-white/5 rounded-full overflow-hidden p-[1px] border border-white/5 shadow-inner">
+                      <div className="h-full bg-gradient-to-r from-blue-700 via-blue-500 to-blue-400 transition-all duration-700 shadow-[0_0_20px_rgba(59,130,246,0.6)]" style={{ width: `${loadingProgress}%` }}></div>
                     </div>
-                    <p className="text-xl font-bold text-white uppercase tracking-widest">{isUpscaling ? UPSCALE_STEPS[loadingStep] : LOADING_STEPS[loadingStep]}</p>
+                    <p className="text-3xl font-black text-white uppercase tracking-[0.25em] animate-pulse">
+                      {isUpscaling ? UPSCALE_STEPS[loadingStep] : (isVariationsLoading ? VARIATION_STEPS[loadingStep] : LOADING_STEPS[loadingStep])}
+                    </p>
                   </div>
                 </div>
               </div>
             )}
 
             {currentImage ? (
-              <img src={currentImage.imageUrl} alt={currentImage.prompt} className={`w-full h-full object-cover transition-all duration-700 ${isLoading ? 'opacity-0 scale-110' : 'opacity-100 scale-100'}`} />
+              <img 
+                src={currentImage.imageUrl} 
+                alt={currentImage.prompt} 
+                className={`w-full h-full object-cover transition-all duration-1000 ease-out ${isLoading || isVariationsLoading ? 'opacity-0 scale-110 blur-3xl' : 'opacity-100 scale-100 blur-0'}`} 
+              />
             ) : (
-              !isLoading && (
-                <div className="h-full flex flex-col items-center justify-center text-center p-16 space-y-6">
-                  <div className="w-20 h-20 glass rounded-3xl flex items-center justify-center animate-bounce-slow border border-white/10">
-                    <SparkleIcon className="w-10 h-10 text-blue-500" />
+              !isLoading && !isVariationsLoading && (
+                <div className="h-full flex flex-col items-center justify-center text-center p-20 space-y-10 group/placeholder relative overflow-hidden">
+                  <img 
+                    src="https://images.pollinations.ai/prompt/abstract%20digital%20neural%20network%20nebula%20dark%20blue%20background?width=1024&height=1024&nologo=true" 
+                    className="absolute inset-0 w-full h-full object-cover opacity-10 group-hover/placeholder:scale-105 transition-transform duration-10000"
+                    alt="Neural Background"
+                  />
+                  <div className="w-32 h-32 glass rounded-[40px] flex items-center justify-center animate-bounce-slow border border-white/10 shadow-3xl relative z-10">
+                    <SparkleIcon className="w-16 h-16 text-blue-500 drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
                   </div>
-                  <h2 className="text-3xl font-black text-white uppercase tracking-tighter">Initialize Synthesis</h2>
-                  <p className="text-gray-500 uppercase tracking-widest text-[10px] font-black">Neural Engine ready. Enter prompt below.</p>
+                  <div className="space-y-6 relative z-10">
+                    <h2 className="text-5xl font-black text-white uppercase tracking-tighter">Initiate Neural Sync</h2>
+                    <p className="text-gray-500 uppercase tracking-[0.5em] text-[12px] font-black opacity-50">Gemini 2.5 Flash Synthesis Engine is Ready</p>
+                  </div>
                 </div>
               )
             )}
             
             {currentImage && !isLoading && !isUpscaling && !isVariationsLoading && (
-              <div className="absolute bottom-0 left-0 right-0 p-10 bg-gradient-to-t from-black/95 to-transparent pointer-events-none">
-                <p className="text-white text-lg font-bold italic line-clamp-2">"{currentImage.prompt}"</p>
+              <div className="absolute bottom-0 left-0 right-0 p-14 bg-gradient-to-t from-black/98 via-black/40 to-transparent pointer-events-none">
+                <p className="text-white text-2xl font-bold italic line-clamp-2 leading-relaxed opacity-90 tracking-tight">"{currentImage.prompt}"</p>
               </div>
             )}
           </div>
 
-          {currentImage && !isLoading && !isUpscaling && (
-            <div className="flex flex-wrap items-center justify-center gap-3 animate-in fade-in slide-in-from-bottom-6 duration-700">
-              <button onClick={handleUpscaleRequest} disabled={currentImage.isUpscaled || credits <= 0} className="px-6 py-3.5 glass rounded-2xl border border-purple-500/20 text-purple-200 font-bold uppercase text-[10px] tracking-widest hover:bg-purple-500/20 transition-all disabled:opacity-30 shadow-lg">
-                {currentImage.isUpscaled ? '4K Master' : 'Refine to 4K (-1)'}
+          {currentImage && !isLoading && !isUpscaling && !isVariationsLoading && (
+            <div className="flex flex-wrap items-center justify-center gap-5 animate-in fade-in slide-in-from-bottom-10 duration-700">
+              <button onClick={handleUpscaleRequest} disabled={currentImage.isUpscaled || credits <= 0} className="px-10 py-5 glass rounded-3xl border border-purple-500/30 text-purple-200 font-black uppercase text-[12px] tracking-widest hover:bg-purple-500/20 hover:border-purple-500/50 hover:scale-105 active:scale-95 transition-all disabled:opacity-30 shadow-3xl">
+                {currentImage.isUpscaled ? '4K Master Archive' : 'Refine to 4K Master (-1)'}
               </button>
-              <button onClick={handleCreateVariations} disabled={credits <= 0} className="px-6 py-3.5 glass rounded-2xl border border-blue-500/20 text-blue-200 font-bold uppercase text-[10px] tracking-widest hover:bg-blue-500/20 transition-all disabled:opacity-30 shadow-lg">
-                Neural Variants (-1)
+              <button onClick={handleCreateVariations} disabled={credits <= 0} className="px-10 py-5 glass rounded-3xl border border-blue-500/30 text-blue-200 font-black uppercase text-[12px] tracking-widest hover:bg-blue-500/20 hover:border-blue-500/50 hover:scale-105 active:scale-95 transition-all disabled:opacity-30 shadow-3xl">
+                Create Variants Swarm (-1)
               </button>
-              <div className="h-10 w-px bg-white/10 mx-2"></div>
-              <button onClick={handleWhatsAppShare} className="p-3.5 glass rounded-2xl border border-green-500/20 hover:bg-green-500/10 transition-all group" title="WhatsApp Share">
-                <WhatsAppIcon className="w-5 h-5 text-green-500 group-hover:scale-110 transition-transform" />
+              <div className="h-14 w-px bg-white/10 mx-3"></div>
+              <button onClick={handleWhatsAppShare} className="p-5 glass rounded-[28px] border border-green-500/30 hover:bg-green-500/10 hover:border-green-500/50 hover:scale-110 active:scale-90 transition-all group" title="WhatsApp Share">
+                <WhatsAppIcon className="w-7 h-7 text-green-500 group-hover:scale-110 transition-transform" />
               </button>
-              <button onClick={handleShare} className="p-3.5 glass rounded-2xl border border-white/10 hover:bg-white/5 transition-all group" title="System Link">
-                <svg className="w-5 h-5 text-white group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6a3 3 0 100-2.684m0 2.684l6.632-3.316" /></svg>
+              <button onClick={handleShare} className="p-5 glass rounded-[28px] border border-white/10 hover:bg-white/5 hover:border-white/20 hover:scale-110 active:scale-90 transition-all group" title="Copy System Link">
+                <svg className="w-7 h-7 text-white group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6a3 3 0 100-2.684m0 2.684l6.632-3.316" /></svg>
               </button>
-              <button onClick={handleDownload} className="p-3.5 glass rounded-2xl border border-white/10 hover:bg-white/5 transition-all group" title="Download High-Res">
-                <svg className="w-5 h-5 text-white group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+              <button onClick={handleDownload} className="p-5 glass rounded-[28px] border border-white/10 hover:bg-white/5 hover:border-white/20 hover:scale-110 active:scale-90 transition-all group" title="Download High-Res Synthesis">
+                <svg className="w-7 h-7 text-white group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
               </button>
             </div>
           )}
 
-          <section className="w-full mt-16 animate-in fade-in slide-in-from-bottom-12 duration-1000">
-             <div className="flex items-center gap-6 mb-10 px-2">
-               <h2 className="text-xl font-black uppercase tracking-[0.5em] text-white whitespace-nowrap">Neural Archive</h2>
-               <div className="h-px flex-1 bg-gradient-to-r from-blue-500/50 to-transparent"></div>
+          <section className="w-full mt-24 animate-in fade-in slide-in-from-bottom-20 duration-1000">
+             <div className="flex items-center gap-10 mb-14 px-2">
+               <h2 className="text-3xl font-black uppercase tracking-[0.5em] text-white whitespace-nowrap">Neural Archive</h2>
+               <div className="h-px flex-1 bg-gradient-to-r from-blue-500/60 via-blue-500/10 to-transparent"></div>
              </div>
              
              {history.length > 0 ? (
-               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6 px-2">
+               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 md:gap-8 px-2">
                  <AdSlot type="feed" />
                  
                  {history.map((item) => (
-                   <div key={item.id} onClick={() => handleSelectHistoryItem(item)} className={`group relative aspect-square glass rounded-[32px] overflow-hidden cursor-pointer transition-all duration-500 border ${currentImage?.id === item.id ? 'border-blue-500/60 ring-4 ring-blue-500/10' : 'border-white/5 hover:border-blue-500/30'}`}>
+                   <div key={item.id} onClick={() => handleSelectHistoryItem(item)} className={`group relative aspect-square glass rounded-[44px] overflow-hidden cursor-pointer transition-all duration-700 border-2 ${currentImage?.id === item.id ? 'border-blue-500 ring-4 ring-blue-500/10 shadow-[0_0_40px_rgba(59,130,246,0.4)] scale-105' : 'border-white/5 hover:border-blue-500/40 hover:-translate-y-2'}`}>
                      <img 
                       src={item.imageUrl} 
                       onError={(e) => (e.currentTarget.src = 'https://images.pollinations.ai/prompt/error%20corrupt%20data%20glitch%20dark?nologo=true')} 
-                      className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110" 
+                      className="w-full h-full object-cover transition-all duration-1000 group-hover:scale-110" 
                      />
-                     <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-5 flex flex-col justify-end">
-                       <p className="text-[10px] text-white font-bold truncate italic mb-2">"{item.prompt}"</p>
+                     <div className="absolute inset-0 bg-gradient-to-t from-black/98 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-7 flex flex-col justify-end">
+                       <p className="text-[11px] text-white font-black truncate italic mb-2 tracking-tight">"{item.prompt}"</p>
                        <div className="flex justify-between items-center">
-                         <div className="flex gap-1.5">
-                           <span className="text-[8px] text-gray-400 font-black uppercase tracking-widest">{item.width}px</span>
-                           {item.isUpscaled && <span className="text-[8px] text-purple-400 font-black uppercase">4K</span>}
+                         <div className="flex gap-2.5">
+                           <span className="text-[10px] text-gray-400 font-black uppercase tracking-widest">{item.width}PX</span>
+                           {item.isUpscaled && <span className="text-[10px] text-purple-400 font-black uppercase">4K MASTER</span>}
                          </div>
                        </div>
                      </div>
@@ -625,11 +627,16 @@ const App: React.FC = () => {
                  ))}
                </div>
              ) : (
-               <div className="flex flex-col items-center justify-center p-20 glass rounded-[40px] border-white/5 border-dashed">
-                 <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-6">
-                   <SparkleIcon className="w-8 h-8 text-gray-700" />
+               <div className="flex flex-col items-center justify-center p-32 glass rounded-[64px] border-white/5 border-dashed border-2 relative overflow-hidden group">
+                 <img 
+                    src="https://images.pollinations.ai/prompt/abstract%20digital%20matrix%20dark%20blue%20background%20lines?width=1024&height=1024&nologo=true" 
+                    className="absolute inset-0 w-full h-full object-cover opacity-5 group-hover:scale-110 transition-transform duration-10000"
+                    alt="Neural Empty Background"
+                 />
+                 <div className="w-24 h-24 rounded-[32px] bg-white/5 flex items-center justify-center mb-10 shadow-3xl border border-white/10 relative z-10">
+                   <SparkleIcon className="w-12 h-12 text-gray-800" />
                  </div>
-                 <p className="text-[10px] font-black text-gray-700 uppercase tracking-widest text-center leading-relaxed">Identity archive empty.<br/>Initiate synthesis to build database.</p>
+                 <p className="text-[12px] font-black text-gray-700 uppercase tracking-[0.6em] text-center leading-loose relative z-10">Neural Log Inactive.<br/>Synchronize Patterns to Populate Gallery.</p>
                </div>
              )}
           </section>
@@ -638,34 +645,48 @@ const App: React.FC = () => {
         <InputBar ref={inputBarRef} credits={credits} currentUser={currentUser || ''} onGenerate={handleGenerate} onEnhance={enhancePrompt} isLoading={isLoading || isVariationsLoading || isUpscaling} />
       </main>
 
-      {/* Overlays */}
+      {/* Fullscreen Preview */}
       {isZoomed && currentImage && (
-        <div className="fixed inset-0 z-[400] bg-black/98 backdrop-blur-2xl flex items-center justify-center p-8 cursor-zoom-out" onClick={() => setIsZoomed(false)}>
-          <img src={currentImage.imageUrl} className="max-w-full max-h-[85vh] rounded-[40px] shadow-[0_0_100px_rgba(59,130,246,0.3)] border border-white/10" />
+        <div className="fixed inset-0 z-[400] bg-black/98 backdrop-blur-4xl flex items-center justify-center p-10 cursor-zoom-out animate-in fade-in duration-500" onClick={() => setIsZoomed(false)}>
+          <div className="relative group max-w-full max-h-[92vh]">
+            <img src={currentImage.imageUrl} className="w-full h-full object-contain rounded-[56px] shadow-[0_0_200px_rgba(59,130,246,0.35)] border border-white/20" />
+            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 glass px-10 py-5 rounded-3xl border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap backdrop-blur-xl">
+              <p className="text-white text-base font-black uppercase tracking-[0.3em]">{currentImage.width}x{currentImage.height} NEURAL MASTERPIECE</p>
+            </div>
+          </div>
         </div>
       )}
 
+      {/* Confirmation Overlays */}
       {showUpscaleConfirm && (
-        <div className="fixed inset-0 z-[420] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6">
-          <div className="glass max-w-md w-full p-12 rounded-[40px] border border-white/10 shadow-2xl text-center">
-            <h3 className="text-3xl font-black mb-4 uppercase text-purple-400">Master 4K Sync</h3>
-            <p className="text-gray-400 mb-10 font-medium leading-relaxed uppercase text-[10px] tracking-widest">Execute 1 credit for ultra-high fidelity synthesis?</p>
-            <div className="flex flex-col gap-4">
-              <button onClick={executeUpscale} className="w-full py-5 bg-purple-600 text-white font-black rounded-2xl uppercase tracking-widest text-xs hover:bg-purple-500 transition-colors">Confirm (-1 Credit)</button>
-              <button onClick={() => setShowUpscaleConfirm(false)} className="w-full py-5 glass text-white font-black rounded-2xl uppercase tracking-widest text-xs hover:bg-white/5 transition-colors">Abort</button>
+        <div className="fixed inset-0 z-[420] bg-black/90 backdrop-blur-3xl flex items-center justify-center p-8 animate-in zoom-in-95 duration-500">
+          <div className="glass max-w-md w-full p-16 rounded-[64px] border border-white/10 shadow-3xl text-center relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-purple-500 to-transparent"></div>
+            <div className="w-24 h-24 bg-purple-500/10 rounded-[32px] flex items-center justify-center mx-auto mb-10 border border-purple-500/30 shadow-2xl">
+              <SparkleIcon className="w-12 h-12 text-purple-400" />
+            </div>
+            <h3 className="text-4xl font-black mb-8 uppercase text-purple-400 tracking-tighter">Establish 4K Link</h3>
+            <p className="text-gray-400 mb-14 font-medium leading-loose uppercase text-[12px] tracking-widest opacity-80">Refine this neural construct into an ultra-high fidelity visual masterpiece? (-1 Credit)</p>
+            <div className="flex flex-col gap-6">
+              <button onClick={executeUpscale} className="w-full py-7 bg-purple-600 text-white font-black rounded-3xl uppercase tracking-[0.3em] text-xs hover:bg-purple-500 hover:scale-[1.03] active:scale-97 transition-all shadow-[0_25px_50px_rgba(147,51,234,0.4)]">Initialize Protocol</button>
+              <button onClick={() => setShowUpscaleConfirm(false)} className="w-full py-7 glass text-white font-black rounded-3xl uppercase tracking-[0.3em] text-xs hover:bg-white/5 transition-all">Abort Link</button>
             </div>
           </div>
         </div>
       )}
 
       {showClearConfirm && (
-        <div className="fixed inset-0 z-[420] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6">
-          <div className="glass max-w-md w-full p-12 rounded-[40px] border border-white/10 shadow-2xl text-center">
-            <h3 className="text-3xl font-black mb-4 uppercase text-red-500">Purge Memory?</h3>
-            <p className="text-gray-400 mb-10 font-medium uppercase text-[10px] tracking-widest">This will permanently erase all local synthesis data.</p>
-            <div className="flex flex-col gap-4">
-              <button onClick={confirmClearHistory} className="w-full py-5 bg-red-600 text-white font-black rounded-2xl uppercase tracking-widest text-xs hover:bg-red-500 transition-colors">Wipe DB</button>
-              <button onClick={() => setShowClearConfirm(false)} className="w-full py-5 glass text-white font-black rounded-2xl uppercase tracking-widest text-xs hover:bg-white/5 transition-colors">Abort</button>
+        <div className="fixed inset-0 z-[420] bg-black/90 backdrop-blur-3xl flex items-center justify-center p-8 animate-in zoom-in-95 duration-500">
+          <div className="glass max-w-md w-full p-16 rounded-[64px] border border-white/10 shadow-3xl text-center relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent"></div>
+            <div className="w-24 h-24 bg-red-500/10 rounded-[32px] flex items-center justify-center mx-auto mb-10 border border-red-500/30 shadow-2xl">
+              <svg className="w-12 h-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+            </div>
+            <h3 className="text-4xl font-black mb-8 uppercase text-red-500 tracking-tighter">Database Purge</h3>
+            <p className="text-gray-400 mb-14 font-medium uppercase text-[12px] tracking-widest leading-loose opacity-80">This command will permanently erase all local neural synthesis records. Proceed?</p>
+            <div className="flex flex-col gap-6">
+              <button onClick={confirmClearHistory} className="w-full py-7 bg-red-600 text-white font-black rounded-3xl uppercase tracking-[0.3em] text-xs hover:bg-red-500 hover:scale-[1.03] active:scale-97 transition-all shadow-[0_25px_50px_rgba(220,38,38,0.4)]">Execute Wipe</button>
+              <button onClick={() => setShowClearConfirm(false)} className="w-full py-7 glass text-white font-black rounded-3xl uppercase tracking-[0.3em] text-xs hover:bg-white/5 transition-all">Abort</button>
             </div>
           </div>
         </div>
