@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { GoogleGenAI } from "@google/genai";
 import LandingPage from './components/LandingPage';
 import Sidebar from './components/Sidebar';
 import InputBar, { InputBarHandle } from './components/InputBar';
@@ -18,12 +19,17 @@ const BoltIcon = ({ className = "w-4 h-4" }) => (
   </svg>
 );
 
+const WhatsAppIcon = ({ className = "w-5 h-5" }) => (
+  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.438 9.889-9.886.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.894 4.44-9.897 9.887-.001 2.155.593 4.256 1.72 6.038l-1.102 4.025 4.149-1.087zm11.646-7.391c-.301-.15-1.78-.879-2.056-.979-.275-.1-.475-.15-.675.15-.199.3-.775.979-.95 1.179-.175.199-.349.225-.65.075-.301-.15-1.27-.467-2.42-1.493-.894-.797-1.496-1.782-1.672-2.081-.175-.3-.019-.462.131-.611.135-.134.301-.351.45-.525.15-.175.199-.3.3-.5.1-.199.05-.374-.025-.525-.075-.15-.675-1.625-.925-2.225-.244-.589-.491-.51-.675-.519-.174-.009-.374-.01-.574-.01s-.525.075-.8.375c-.275.3-1.05 1.025-1.05 2.5s1.075 2.925 1.225 3.125c.15.199 2.113 3.227 5.118 4.524.714.309 1.273.493 1.708.632.717.228 1.369.196 1.885.119.574-.085 1.78-.727 2.03-1.43.25-.702.25-1.303.175-1.43-.075-.127-.275-.226-.575-.376z"/>
+  </svg>
+);
+
 const MAX_DAILY_CREDITS = 10;
 
 const LOADING_STEPS = [
   "Initializing Neural Pathways...",
   "Consulting Gemini Intelligence...",
-  "Drafting Conceptual Layer...",
   "Synthesizing Pixels...",
   "Applying Textural Depth...",
   "Polishing Visual Fidelity...",
@@ -32,7 +38,6 @@ const LOADING_STEPS = [
 
 const UPSCALE_STEPS = [
   "Sampling Texture Data...",
-  "Running Real-ESRGAN Kernels...",
   "Enhancing Edge Fidelity...",
   "Refining Spectral Detail...",
   "Finalizing Ultra-HD Export...",
@@ -68,14 +73,12 @@ const App: React.FC = () => {
     setApiReady(isApiKeyConfigured());
   }, []);
 
-  // Handle User Data Loading on Login
   useEffect(() => {
     if (currentUser) {
       const storageKey = `bamania_history_${currentUser}`;
       const creditKey = `bamania_credits_${currentUser}`;
       const refreshKey = `bamania_last_refresh_${currentUser}`;
       
-      // History Loading
       const saved = localStorage.getItem(storageKey);
       if (saved) {
         try {
@@ -90,13 +93,11 @@ const App: React.FC = () => {
         setCurrentImage(null);
       }
 
-      // Daily Credit Refresh Logic
       const today = new Date().toISOString().split('T')[0];
       const lastRefresh = localStorage.getItem(refreshKey);
       const savedCredits = localStorage.getItem(creditKey);
 
       if (lastRefresh !== today) {
-        // New day! Reset credits
         setCredits(MAX_DAILY_CREDITS);
         localStorage.setItem(refreshKey, today);
         localStorage.setItem(creditKey, MAX_DAILY_CREDITS.toString());
@@ -109,7 +110,6 @@ const App: React.FC = () => {
     }
   }, [currentUser]);
 
-  // Persist Data based on Current User
   useEffect(() => {
     if (currentUser) {
       localStorage.setItem(`bamania_history_${currentUser}`, JSON.stringify(history));
@@ -135,15 +135,14 @@ const App: React.FC = () => {
       
       stepInterval = window.setInterval(() => {
         setLoadingStep(prev => (prev + 1) % steps.length);
-      }, isUpscaling ? 1000 : 1800);
+      }, isUpscaling ? 800 : 1000);
 
       progressInterval = window.setInterval(() => {
         setLoadingProgress(prev => {
-          if (prev >= 98) return 98;
-          const increment = prev < 60 ? Math.random() * 3 : Math.random() * 0.5;
-          return prev + increment;
+          if (prev >= 95) return 95;
+          return prev + Math.random() * 5;
         });
-      }, 100);
+      }, 200);
     } else {
       setLoadingProgress(0);
     }
@@ -183,55 +182,54 @@ const App: React.FC = () => {
     showToast(`Neural Credits Restored to ${MAX_DAILY_CREDITS}.`);
   };
 
-  const verifyImage = async (url: string, timeoutMs: number = 40000): Promise<boolean> => {
-    const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), timeoutMs);
-
-    try {
-      const response = await fetch(url, { signal: controller.signal });
-      clearTimeout(id);
-      if (response.status === 429) {
-        showToast("Engine busy. Retrying...", "error");
-        return false;
-      }
-      return response.ok;
-    } catch (err: any) {
-      clearTimeout(id);
-      return false;
-    }
-  };
-
   const handleGenerate = useCallback(async (prompt: string, userSeed: number | undefined, resolution: Resolution) => {
     if (credits <= 0) {
       showToast("Identity credits depleted.", "error");
       return;
     }
 
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) {
+      showToast("Neural Engine unavailable (Missing API Key).", "error");
+      return;
+    }
+
     const startTime = performance.now();
     setIsLoading(true);
     setVariations([]);
-    const finalSeed = userSeed !== undefined ? userSeed : Math.floor(Math.random() * 2147483647);
     
-    const [width, height] = resolution.split('x').map(Number);
-    const model = 'flux';
-    const encodedPrompt = encodeURIComponent(prompt);
-    
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&seed=${finalSeed}&model=${model}&nologo=true`;
+    try {
+      const ai = new GoogleGenAI({ apiKey });
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash-image',
+        contents: {
+          parts: [{ text: prompt }]
+        },
+        config: {
+          imageConfig: {
+            aspectRatio: "1:1"
+          }
+        }
+      });
 
-    const isAvailable = await verifyImage(imageUrl);
-    
-    if (isAvailable) {
-      const img = new Image();
-      img.src = imageUrl;
-      img.onload = () => {
+      let base64Image = '';
+      for (const part of response.candidates[0].content.parts) {
+        if (part.inlineData) {
+          base64Image = `data:image/png;base64,${part.inlineData.data}`;
+          break;
+        }
+      }
+
+      if (base64Image) {
         const endTime = performance.now();
         const generationTime = (endTime - startTime) / 1000;
+        const [width, height] = resolution.split('x').map(Number);
         
         const newItem: HistoryItem = {
           id: crypto.randomUUID(),
           prompt,
-          imageUrl,
-          seed: finalSeed,
+          imageUrl: base64Image,
+          seed: userSeed || 0,
           timestamp: Date.now(),
           width,
           height,
@@ -243,11 +241,14 @@ const App: React.FC = () => {
         setCurrentImage(newItem);
         setCredits(prev => Math.max(0, prev - 1));
         setLoadingProgress(100);
-        setTimeout(() => setIsLoading(false), 300);
-      };
-    } else {
+        setTimeout(() => setIsLoading(false), 200);
+      } else {
+        throw new Error("No image data in response");
+      }
+    } catch (error) {
+      console.error("Gemini Image Gen Error:", error);
       setIsLoading(false);
-      showToast("Generation timed out.", "error");
+      showToast("Fast Synthesis Failed. Retrying...", "error");
     }
   }, [credits]);
 
@@ -264,37 +265,49 @@ const App: React.FC = () => {
     if (!currentImage || isUpscaling || credits <= 0) return;
     setShowUpscaleConfirm(false);
     
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) return;
+
     const startTime = performance.now();
     setIsUpscaling(true);
-    showToast("Processing 4K synthesis...", "info");
+    showToast("Initializing High-Fidelity Refinement...", "info");
     
-    const { prompt, seed } = currentImage;
-    const width = 2048;
-    const height = 2048;
-    const model = 'flux';
-    
-    let enhancedPromptForUpscale = `${prompt}, masterpiece, 8k resolution, cinematic lighting`;
-    
-    const encodedPrompt = encodeURIComponent(enhancedPromptForUpscale);
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&seed=${seed}&model=${model}&nologo=true`;
+    try {
+      const ai = new GoogleGenAI({ apiKey });
+      const upscalePrompt = `Upscale this concept to extreme detail, cinematic, 8k, hyper-realistic: ${currentImage.prompt}`;
+      
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash-image',
+        contents: {
+          parts: [{ text: upscalePrompt }]
+        },
+        config: {
+          imageConfig: {
+            aspectRatio: "1:1"
+          }
+        }
+      });
 
-    const isAvailable = await verifyImage(imageUrl, 60000);
-    
-    if (isAvailable) {
-      const img = new Image();
-      img.src = imageUrl;
-      img.onload = () => {
+      let base64Image = '';
+      for (const part of response.candidates[0].content.parts) {
+        if (part.inlineData) {
+          base64Image = `data:image/png;base64,${part.inlineData.data}`;
+          break;
+        }
+      }
+
+      if (base64Image) {
         const endTime = performance.now();
         const generationTime = (endTime - startTime) / 1000;
         
         const newItem: HistoryItem = {
           id: crypto.randomUUID(),
-          prompt: enhancedPromptForUpscale,
-          imageUrl,
-          seed,
+          prompt: currentImage.prompt,
+          imageUrl: base64Image,
+          seed: currentImage.seed,
           timestamp: Date.now(),
-          width,
-          height,
+          width: 2048,
+          height: 2048,
           isUpscaled: true,
           generationTime: parseFloat(generationTime.toFixed(1)),
           isFavorite: currentImage.isFavorite
@@ -304,12 +317,12 @@ const App: React.FC = () => {
         setCurrentImage(newItem);
         setCredits(prev => Math.max(0, prev - 1));
         setLoadingProgress(100);
-        showToast("Upscale complete.");
-        setTimeout(() => setIsUpscaling(false), 300);
-      };
-    } else {
+        showToast("4K Neural Synthesis Complete.");
+        setTimeout(() => setIsUpscaling(false), 200);
+      }
+    } catch (error) {
       setIsUpscaling(false);
-      showToast("Upscale failed.", "error");
+      showToast("Upscale Synthesis Failed.", "error");
     }
   };
 
@@ -320,52 +333,54 @@ const App: React.FC = () => {
     }
     if (!currentImage || isVariationsLoading) return;
     
-    const startTime = performance.now();
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) return;
+
     setIsVariationsLoading(true);
-    const { prompt, width, height } = currentImage;
-    const model = 'flux';
-    const encodedPrompt = encodeURIComponent(prompt);
-    
-    const promises = [];
-
-    for (let i = 0; i < 4; i++) {
-      const variantSeed = Math.floor(Math.random() * 2147483647);
-      const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&seed=${variantSeed}&model=${model}&nologo=true`;
-      
-      const p = new Promise<HistoryItem | null>(async (resolve) => {
-        const isOk = await verifyImage(imageUrl, 60000);
-        if (!isOk) return resolve(null);
-
-        const img = new Image();
-        img.src = imageUrl;
-        img.onload = () => {
-          const endTime = performance.now();
-          const generationTime = (endTime - startTime) / 1000;
-          resolve({
-            id: crypto.randomUUID(),
-            prompt, imageUrl, seed: variantSeed,
-            timestamp: Date.now() + i,
-            width, height,
-            generationTime: parseFloat(generationTime.toFixed(1)),
-            isFavorite: false
-          });
-        };
-        img.onerror = () => resolve(null);
-      });
-      promises.push(p);
-    }
+    showToast("Spawning Neural Variants...", "info");
 
     try {
+      const ai = new GoogleGenAI({ apiKey });
+      const variationPrompt = `Create a creative variation of this: ${currentImage.prompt}`;
+      
+      const promises = [1, 2].map(async () => {
+        const resp = await ai.models.generateContent({
+          model: 'gemini-2.5-flash-image',
+          contents: { parts: [{ text: variationPrompt }] },
+          config: { imageConfig: { aspectRatio: "1:1" } }
+        });
+        
+        for (const part of resp.candidates[0].content.parts) {
+          if (part.inlineData) return `data:image/png;base64,${part.inlineData.data}`;
+        }
+        return null;
+      });
+
       const results = await Promise.all(promises);
-      const validResults = results.filter((item): item is HistoryItem => item !== null);
+      const validResults: HistoryItem[] = results
+        .filter((url): url is string => url !== null)
+        .map((url, i) => ({
+          id: crypto.randomUUID(),
+          prompt: currentImage.prompt,
+          imageUrl: url,
+          seed: Math.floor(Math.random() * 1000),
+          timestamp: Date.now() + i,
+          width: currentImage.width,
+          height: currentImage.height,
+          generationTime: 1.5,
+          isFavorite: false
+        }));
+
       if (validResults.length > 0) {
         setVariations(validResults);
         setHistory(prev => [...validResults, ...prev]);
         setCredits(prev => Math.max(0, prev - 1));
+        showToast("Variations established.");
       }
-      setTimeout(() => setIsVariationsLoading(false), 300);
+      setIsVariationsLoading(false);
     } catch (error) {
       setIsVariationsLoading(false);
+      showToast("Variant Synthesis Failed.", "error");
     }
   };
 
@@ -380,32 +395,46 @@ const App: React.FC = () => {
 
   const handleDownload = async () => {
     if (!currentImage) return;
-    try {
-      const response = await fetch(currentImage.imageUrl);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `bamania-${currentImage.seed}.png`;
-      link.click();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      showToast("Download blocked.", "error");
-    }
+    const link = document.createElement('a');
+    link.href = currentImage.imageUrl;
+    link.download = `bamania-gen-${Date.now()}.png`;
+    link.click();
   };
 
   const handleShare = async () => {
     if (!currentImage) return;
     try {
-      if (navigator.share) {
-        await navigator.share({ title: 'Bamania AI', text: currentImage.prompt, url: currentImage.imageUrl });
+      // Try to share the actual file if supported
+      const response = await fetch(currentImage.imageUrl);
+      const blob = await response.blob();
+      const file = new File([blob], 'bamania-gen.png', { type: 'image/png' });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: 'Bamania AI',
+          text: `Neural Synthesis: "${currentImage.prompt}"`,
+        });
+      } else if (navigator.share) {
+        await navigator.share({ 
+          title: 'Bamania AI', 
+          text: `Check out this AI generation: "${currentImage.prompt}"`, 
+          url: window.location.href 
+        });
       } else {
         await navigator.clipboard.writeText(currentImage.imageUrl);
-        showToast("Copied to clipboard!");
+        showToast("Image URI copied to clipboard!");
       }
     } catch (error) {
       showToast("Sharing failed.", "error");
     }
+  };
+
+  const handleWhatsAppShare = () => {
+    if (!currentImage) return;
+    const text = encodeURIComponent(`Check out this AI generation from Bamania AI: "${currentImage.prompt}"\n\nGenerated via Bamania AI Synthesis Engine.`);
+    const url = encodeURIComponent(window.location.href);
+    window.open(`https://wa.me/?text=${text}%20${url}`, '_blank');
   };
 
   const confirmClearHistory = () => {
@@ -446,7 +475,6 @@ const App: React.FC = () => {
 
   return (
     <div className="flex min-h-screen bg-[#030712] overflow-hidden text-slate-200">
-      {/* Toast System */}
       <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[200] flex flex-col items-center gap-3 pointer-events-none">
         {toasts.map(toast => (
           <div key={toast.id} className="pointer-events-auto glass px-6 py-3 rounded-full flex items-center gap-3 shadow-2xl animate-in slide-in-from-top-4 fade-in duration-300 border-white/10">
@@ -530,7 +558,7 @@ const App: React.FC = () => {
             )}
 
             {currentImage ? (
-              <img src={currentImage.imageUrl} alt={currentImage.prompt} className={`w-full h-full object-cover transition-all duration-1000 ${isLoading ? 'opacity-0 scale-110' : 'opacity-100 scale-100'}`} />
+              <img src={currentImage.imageUrl} alt={currentImage.prompt} className={`w-full h-full object-cover transition-all duration-700 ${isLoading ? 'opacity-0 scale-110' : 'opacity-100 scale-100'}`} />
             ) : (
               !isLoading && (
                 <div className="h-full flex flex-col items-center justify-center text-center p-16 space-y-6">
@@ -557,11 +585,17 @@ const App: React.FC = () => {
               <button onClick={handleCreateVariations} disabled={credits <= 0} className="px-6 py-3.5 glass rounded-2xl border border-blue-500/20 text-blue-200 font-bold uppercase text-[10px] tracking-widest hover:bg-blue-500/20 transition-all disabled:opacity-30">
                 Neural Variants (-1)
               </button>
-              <button onClick={handleShare} className="p-3.5 glass rounded-2xl border border-white/10 hover:bg-white/5 transition-all">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6a3 3 0 100-2.684m0 2.684l6.632-3.316" /></svg>
+              
+              <div className="h-10 w-px bg-white/10 mx-2"></div>
+
+              <button onClick={handleWhatsAppShare} className="p-3.5 glass rounded-2xl border border-green-500/20 hover:bg-green-500/10 transition-all group" title="Share to WhatsApp">
+                <WhatsAppIcon className="w-5 h-5 text-green-500 group-hover:scale-110 transition-transform" />
               </button>
-              <button onClick={handleDownload} className="p-3.5 glass rounded-2xl border border-white/10 hover:bg-white/5 transition-all">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+              <button onClick={handleShare} className="p-3.5 glass rounded-2xl border border-white/10 hover:bg-white/5 transition-all group" title="System Share">
+                <svg className="w-5 h-5 text-white group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6a3 3 0 100-2.684m0 2.684l6.632-3.316" /></svg>
+              </button>
+              <button onClick={handleDownload} className="p-3.5 glass rounded-2xl border border-white/10 hover:bg-white/5 transition-all group" title="Download Image">
+                <svg className="w-5 h-5 text-white group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
               </button>
             </div>
           )}
@@ -569,7 +603,7 @@ const App: React.FC = () => {
           {(variations.length > 0 || isVariationsLoading) && (
             <div className="w-full mt-12 animate-in fade-in slide-in-from-bottom-8">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                {isVariationsLoading ? [...Array(4)].map((_, i) => <div key={i} className="aspect-square glass rounded-[30px] shimmer"></div>) : 
+                {isVariationsLoading ? [...Array(2)].map((_, i) => <div key={i} className="aspect-square glass rounded-[30px] shimmer"></div>) : 
                   variations.map((v) => <div key={v.id} onClick={() => handleSelectVariation(v)} className="group relative aspect-square glass rounded-[30px] overflow-hidden cursor-pointer hover:scale-105 transition-all border border-white/5"><img src={v.imageUrl} className="w-full h-full object-cover" /></div>)}
               </div>
             </div>
