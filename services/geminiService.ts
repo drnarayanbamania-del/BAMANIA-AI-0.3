@@ -1,36 +1,48 @@
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
-import { GoogleGenAI } from "@google/genai";
+const API_URL =
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent";
 
-export const isApiKeyConfigured = (): boolean => {
-  return !!process.env.API_KEY;
-};
+export async function generateGeminiResponse(prompt: string): Promise<string> {
+  if (!API_KEY) {
+    throw new Error("Gemini API key missing");
+  }
 
-export const enhancePrompt = async (originalPrompt: string): Promise<string> => {
-  const apiKey = process.env.API_KEY;
-  
-  if (!apiKey) {
-    return `${originalPrompt}, masterpiece, high detail, 8k, cinematic`;
+  if (!prompt || prompt.trim().length < 3) {
+    throw new Error("Please enter a valid prompt");
   }
 
   try {
-    const ai = new GoogleGenAI({ apiKey });
-    
-    // Using gemini-3-flash-preview for the highest quality prompt expansion
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: `Transform the following short concept into a vivid, hyper-detailed artistic prompt for an image generator. 
-      Focus on lighting, texture, and artistic medium. 
-      Subject: ${originalPrompt}. 
-      Return ONLY the expanded prompt text.`,
+    const response = await fetch(${API_URL}?key=${API_KEY}, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [{ text: prompt }],
+          },
+        ],
+      }),
     });
-    
-    // Strictly use .text property as per guidelines
-    const enhancedText = response.text;
-    if (!enhancedText) throw new Error("Empty neural response");
-    
-    return enhancedText.trim();
-  } catch (error) {
-    console.error("Prompt expansion failure:", error);
-    return `${originalPrompt}, ultra detailed, cinematic masterpiece, 8k`;
+
+    if (!response.ok) {
+      throw new Error("Gemini API failed");
+    }
+
+    const data = await response.json();
+
+    const text =
+      data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!text) {
+      throw new Error("No response from AI");
+    }
+
+    return text;
+  } catch (err) {
+    console.error(err);
+    throw new Error("AI generation failed. Try again.");
   }
-};
+}
