@@ -1,32 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Bamania AI</title>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bamania AI</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
-      rel="stylesheet"
-    />
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #020617;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
 
-    <style>
-      body {
-        margin: 0;
-        font-family: 'Inter', sans-serif;
-        background-color: #020617;
-        color: #f8fafc;
-      }
-    </style>
-  </head>
+    .box {
+      text-align: center;
+      padding: 30px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.05);
+    }
 
-  <body>
-    <!-- React root -->
-    <div id="root"></div>
+    button {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      background: #2563eb;
+      color: white;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+  </style>
+</head>
 
-    <!-- ✅ CORRECT ENTRY FILE -->
-    <script type="module" src="/index.tsx"></script>
-  </body>
+<body>
+  <div class="box">
+    <h1>🚀 Bamania AI</h1>
+    <p>Site is LIVE successfully on Vercel</p>
+    <button onclick="alert('Working perfectly!')">
+      Test Button
+    </button>
+  </div>
+</body>
 </html>
