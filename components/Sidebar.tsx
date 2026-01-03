@@ -4,136 +4,153 @@ import { HistoryItem } from '../types';
 
 interface SidebarProps {
   history: HistoryItem[];
+  credits: number;
   isOpen: boolean;
+  currentUser: string;
   onSelect: (item: HistoryItem) => void;
   onClose: () => void;
   onClear: () => void;
-  onDeleteItem: (id: string) => void;
+  onDeleteItem: (id: string | string[]) => void;
+  onToggleFavorite: (id: string) => void;
+  onRefillCredits: () => void;
+  onLogout: () => void;
   currentId?: string;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ history, isOpen, onSelect, onClose, onClear, onDeleteItem, currentId }) => {
+const Sidebar: React.FC<SidebarProps> = ({ 
+  history, 
+  credits,
+  isOpen, 
+  currentUser,
+  onSelect, 
+  onClose, 
+  onClear, 
+  onDeleteItem, 
+  onToggleFavorite,
+  onRefillCredits,
+  onLogout,
+  currentId 
+}) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSelectMode, setIsSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  const filteredHistory = useMemo(() => {
-    return history
-      .filter(item => 
-        item.prompt.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-      .sort((a, b) => b.timestamp - a.timestamp);
+  const groupedHistory = useMemo(() => {
+    const filtered = history.filter(item => 
+      item.prompt.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    const favorites = filtered.filter(item => item.isFavorite);
+    const others = filtered.filter(item => !item.isFavorite).sort((a, b) => b.timestamp - a.timestamp);
+    const now = new Date();
+    const isToday = (ts: number) => new Date(ts).toDateString() === now.toDateString();
+    
+    const today = others.filter(item => isToday(item.timestamp));
+    const archived = others.filter(item => !isToday(item.timestamp));
+
+    return { favorites, today, archived };
   }, [history, searchQuery]);
 
-  const copyPrompt = (e: React.MouseEvent, prompt: string) => {
+  const toggleSelect = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    navigator.clipboard.writeText(prompt);
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(id)) newSelected.delete(id);
+    else newSelected.add(id);
+    setSelectedIds(newSelected);
   };
 
-  return (
-    <>
-      {/* Mobile Backdrop */}
-      {isOpen && (
-        <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
-          onClick={onClose}
-        />
-      )}
-      
-      <aside className={`fixed top-0 left-0 h-full w-80 glass-dark z-50 transition-transform duration-300 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 flex flex-col`}>
-        <div className="p-6 border-b border-white/10 flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-               <svg className="w-5 h-5 text-blue-500 logo-glow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
-               <h2 className="text-xl font-bold tracking-tight text-white">Gallery</h2>
-            </div>
-            <div className="flex gap-3">
-               <button 
-                onClick={onClear}
-                className="text-xs font-semibold text-red-400 hover:text-red-300 transition-colors"
-              >
-                Clear All
-              </button>
-              <button 
-                onClick={onClose}
-                className="lg:hidden p-1 hover:bg-white/10 rounded"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
-          </div>
-
-          {/* Search Bar */}
-          <div className="relative">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search prompts..."
-              className="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-9 pr-4 text-sm text-white placeholder-gray-500 outline-none focus:border-blue-500/50 focus:bg-white/10 transition-all"
-            />
-            <svg className="absolute left-3 top-2.5 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            {searchQuery && (
-              <button 
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-2.5 text-gray-500 hover:text-white"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            )}
-          </div>
+  const renderSection = (title: string, items: HistoryItem[], icon?: React.ReactNode) => {
+    if (items.length === 0) return null;
+    return (
+      <div className="mb-8 last:mb-0">
+        <div className="flex items-center gap-3 mb-4 px-2">
+          {icon}
+          <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">{title} — {items.length}</h3>
+          <div className="h-px flex-1 bg-white/5"></div>
         </div>
-
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
-          {history.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-gray-500 opacity-50 text-center px-6">
-              <svg className="w-12 h-12 mb-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-              <p className="text-sm">Your visual creations will appear here.</p>
-            </div>
-          ) : filteredHistory.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-gray-500 opacity-50 text-center px-6 mt-10">
-              <svg className="w-10 h-10 mb-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-              <p className="text-sm">No matches found for "{searchQuery}"</p>
-            </div>
-          ) : (
-            filteredHistory.map((item) => (
+        <div className="space-y-4">
+          {items.map((item) => {
+            const isSelected = selectedIds.has(item.id);
+            return (
               <div 
                 key={item.id}
-                onClick={() => onSelect(item)}
-                className={`group relative cursor-pointer glass rounded-xl overflow-hidden transition-all duration-300 ${item.id === currentId ? 'border-blue-500/60 shadow-lg shadow-blue-500/20 scale-[1.02] hover:scale-[1.03] hover:shadow-blue-500/30' : 'hover:border-blue-500/40 hover:shadow-lg hover:shadow-blue-500/10 hover:scale-[1.01]'}`}
+                onClick={() => isSelectMode ? toggleSelect(item.id, { stopPropagation: () => {} } as any) : onSelect(item)}
+                className={`group relative cursor-pointer glass rounded-2xl overflow-hidden transition-all duration-500 ${item.id === currentId ? 'border-blue-500/50' : isSelected ? 'border-blue-500' : 'border-white/5 hover:border-white/10'}`}
               >
-                <img src={item.imageUrl} alt={item.prompt} className="w-full h-40 object-cover opacity-90 group-hover:opacity-100 transition-opacity" />
-                
-                {/* Actions Overlay */}
-                <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button 
-                    onClick={(e) => copyPrompt(e, item.prompt)}
-                    className="p-1.5 bg-black/60 backdrop-blur-md rounded-lg text-white hover:bg-black/80 transition-all border border-white/10"
-                    title="Copy Prompt"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                  </button>
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); onDeleteItem(item.id); }}
-                    className="p-1.5 bg-red-500/60 backdrop-blur-md rounded-lg text-white hover:bg-red-500/80 transition-all border border-red-500/10"
-                    title="Delete"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                  </button>
+                <div className="relative aspect-video">
+                  <img src={item.imageUrl} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
+                  {isSelectMode && <div className={`absolute inset-0 flex items-center justify-center ${isSelected ? 'bg-blue-600/20' : 'bg-black/20'}`}><div className={`w-5 h-5 rounded-full border-2 ${isSelected ? 'bg-blue-500 border-white' : 'border-white/40'}`}></div></div>}
+                  <div className="absolute top-2 right-2 flex gap-1">
+                    {item.isUpscaled && <span className="text-[7px] font-black bg-purple-600 text-white px-1.5 py-0.5 rounded">4K</span>}
+                  </div>
                 </div>
-
-                <div className="p-3">
-                  <p className="text-xs text-gray-300 line-clamp-2 italic mb-1">"{item.prompt}"</p>
-                  <div className="flex items-center justify-between text-[10px] text-gray-500">
-                    <span>Seed: {item.seed}</span>
+                <div className="p-3 bg-white/5">
+                  <p className="text-[10px] text-gray-400 line-clamp-1 italic mb-1">"{item.prompt}"</p>
+                  <div className="flex justify-between text-[8px] font-black text-gray-600 uppercase">
+                    <span>{item.width}x{item.height}</span>
                     <span>{new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                   </div>
                 </div>
               </div>
-            ))
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <>
+      {isOpen && <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-40 lg:hidden" onClick={onClose} />}
+      <aside className={`fixed top-0 left-0 h-full w-80 glass-dark z-50 transition-transform duration-500 ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 flex flex-col border-r border-white/5`}>
+        <div className="p-6 border-b border-white/5 bg-white/[0.02]">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+              </div>
+              <div>
+                <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Profile</h4>
+                <p className="text-sm font-black text-white uppercase tracking-tighter truncate max-w-[120px]">{currentUser}</p>
+              </div>
+            </div>
+            <button onClick={onLogout} className="text-[9px] font-black text-gray-500 hover:text-red-400 uppercase tracking-widest transition-colors">Term Link</button>
+          </div>
+          <div className="relative group">
+            <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search archives..." className="w-full bg-black/20 border border-white/10 rounded-xl py-2.5 px-4 text-xs text-white outline-none focus:border-blue-500/30 transition-all" />
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+          {history.length === 0 ? (
+            <div className="h-full flex flex-col items-center justify-center text-center p-8 opacity-20">
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-white mb-2">Void Database</h4>
+              <p className="text-[8px] font-bold uppercase tracking-tighter text-gray-500 leading-relaxed">No neural patterns recorded for this identity.</p>
+            </div>
+          ) : (
+            <>
+              {renderSection("Pinned", groupedHistory.favorites, <svg className="w-3 h-3 text-pink-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>)}
+              {renderSection("Today", groupedHistory.today)}
+              {renderSection("Older Nodes", groupedHistory.archived)}
+            </>
           )}
+        </div>
+
+        <div className="p-6 border-t border-white/5 bg-black/40 space-y-6">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">Neural Credits</span>
+              <span className={`text-[10px] font-black font-mono ${credits === 0 ? 'text-red-500' : 'text-blue-500'}`}>{credits} / 8</span>
+            </div>
+            <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+              <div className={`h-full transition-all duration-700 ${credits === 0 ? 'bg-red-500' : 'bg-blue-600'}`} style={{ width: `${(credits / 8) * 100}%` }}></div>
+            </div>
+            <button onClick={onRefillCredits} className="w-full py-2.5 glass border border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-blue-400 hover:bg-blue-500/5 transition-all">Refill Link</button>
+          </div>
+          <div className="flex items-center justify-between opacity-30 pt-2">
+            <span className="text-[8px] font-black uppercase tracking-[0.4em] text-gray-500">Secure Protocol v2.5</span>
+            {/* Fix: Use onClear prop instead of undefined setShowClearConfirm */}
+            <button onClick={onClear} className="text-[8px] font-black uppercase tracking-widest text-red-500 hover:opacity-100 transition-opacity">Flush DB</button>
+          </div>
         </div>
       </aside>
     </>

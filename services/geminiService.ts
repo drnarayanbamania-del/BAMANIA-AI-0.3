@@ -17,8 +17,9 @@ export const enhancePrompt = async (originalPrompt: string): Promise<string> => 
     // Create a new instance right before the call to ensure the latest API key is used
     const ai = new GoogleGenAI({ apiKey });
     
+    // Fix: Use 'gemini-3-flash-preview' as recommended for basic text tasks
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3-flash-preview',
       contents: `You are a professional prompt engineer for Bamania AI. 
       Your task is to take a simple prompt and transform it into a high-detail, artistic masterpiece description optimized for a Flux-based image generator.
       
@@ -32,10 +33,11 @@ export const enhancePrompt = async (originalPrompt: string): Promise<string> => 
       5. Return ONLY the final enhanced string. No explanations.`,
     });
     
+    // Access the text property directly from GenerateContentResponse
     const enhancedText = response.text?.trim();
     if (!enhancedText) throw new Error("Empty response from Gemini");
     
-    console.log("Prompt enhanced successfully via Gemini 2.5 Flash.");
+    console.log("Prompt enhanced successfully via Gemini 3 Flash.");
     return enhancedText;
   } catch (error) {
     console.error("Gemini enhancement failed:", error);
