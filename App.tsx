@@ -25,7 +25,7 @@ const WhatsAppIcon = ({ className = "w-5 h-5" }) => (
   </svg>
 );
 
-const MAX_DAILY_CREDITS = 10;
+const MAX_DAILY_CREDITS = 8;
 
 const LOADING_STEPS = [
   "Initializing Neural Pathways...",
@@ -404,7 +404,6 @@ const App: React.FC = () => {
   const handleShare = async () => {
     if (!currentImage) return;
     try {
-      // Try to share the actual file if supported
       const response = await fetch(currentImage.imageUrl);
       const blob = await response.blob();
       const file = new File([blob], 'bamania-gen.png', { type: 'image/png' });
@@ -525,7 +524,7 @@ const App: React.FC = () => {
               }`}
             >
               <BoltIcon className={`${credits === 0 ? 'text-red-500' : 'text-blue-500'} group-hover:animate-pulse`} />
-              <span className="text-[11px] font-black uppercase tracking-widest">{credits} / 10 <span className="text-[9px] opacity-40 ml-1">Credits</span></span>
+              <span className="text-[11px] font-black uppercase tracking-widest">{credits} / {MAX_DAILY_CREDITS} <span className="text-[9px] opacity-40 ml-1">Credits</span></span>
             </button>
 
             <div className="h-4 w-px bg-white/10 hidden md:block"></div>
