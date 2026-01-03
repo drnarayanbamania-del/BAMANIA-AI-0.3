@@ -2,6 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { HistoryItem } from '../types';
 import AdSlot from './AdSlot';
+import NeuralPlaceholder from './NeuralPlaceholder';
 
 interface SidebarProps {
   history: HistoryItem[];
@@ -164,24 +165,11 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         <div className="flex-1 overflow-y-auto p-6 custom-scrollbar scroll-smooth">
           {history.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-center p-8">
-              <div className="w-full aspect-square rounded-[40px] glass border border-dashed border-white/10 mb-8 flex items-center justify-center relative overflow-hidden group">
-                 <img 
-                   src="https://images.pollinations.ai/prompt/abstract%20digital%20neural%20network%20nebula%20dark%20blue?width=512&height=512&nologo=true" 
-                   className="absolute inset-0 w-full h-full object-cover opacity-10 grayscale group-hover:grayscale-0 group-hover:opacity-30 transition-all duration-1000" 
-                   alt="Neural Placeholder"
-                 />
-                 <div className="relative z-10 flex flex-col items-center">
-                    <div className="w-14 h-14 rounded-3xl bg-blue-500/10 flex items-center justify-center mb-4 border border-blue-500/20 shadow-2xl animate-bounce-slow">
-                      <svg className="w-7 h-7 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 00-2 2z" /></svg>
-                    </div>
-                    <h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-white/40">Archive Empty</h4>
-                 </div>
-              </div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-600 leading-relaxed max-w-[200px] mx-auto">
-                No synthesis patterns detected. Start generating to fill your gallery.
-              </p>
-            </div>
+            <NeuralPlaceholder 
+              variant="sidebar" 
+              title="Archive Empty" 
+              description="No synthesis patterns detected. Start generating to fill your gallery." 
+            />
           ) : filteredHistory.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center p-10 opacity-50">
               <p className="text-[11px] font-black uppercase tracking-widest text-white">No nodes found</p>

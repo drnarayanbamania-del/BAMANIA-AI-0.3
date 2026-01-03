@@ -1,48 +1,42 @@
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
-const API_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent";
+import { GoogleGenAI } from "@google/genai";
 
-export async function generateGeminiResponse(prompt: string): Promise<string> {
-  if (!API_KEY) {
-    throw new Error("Gemini API key missing");
-  }
+export const isApiKeyConfigured = (): boolean => {
+  return !!process.env.API_KEY;
+};
 
-  if (!prompt || prompt.trim().length < 3) {
-    throw new Error("Please enter a valid prompt");
+// Fix: Use direct process.env.API_KEY for GoogleGenAI initialization
+export const enhancePrompt = async (originalPrompt: string): Promise<string> => {
+  if (!process.env.API_KEY) {
+    console.warn("Gemini API Key not found. Using local fallback enhancement.");
+    return `${originalPrompt}, masterpiece, highly detailed, 8k, cinematic lighting, ultra-realistic textures`;
   }
 
   try {
-    const response = await fetch(${API_URL}?key=${API_KEY}, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [{ text: prompt }],
-          },
-        ],
-      }),
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    
+    // Using gemini-3-flash-preview for high-quality text-to-prompt expansion
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: `You are a professional prompt engineer for Bamania AI. 
+      Transform this simple prompt into a hyper-detailed, artistic visual protocol for an image generator.
+      
+      Original: ${originalPrompt}
+      
+      Requirements:
+      1. Atmospheric lighting (volumetric, cinematic, neon, or golden hour).
+      2. Specific artistic medium (hyper-realistic, octane render, oil painting, etc.).
+      3. Sensory details and texture keywords (intricate, 8k, masterwork).
+      4. Elevate the concept while keeping the core subject.
+      5. Return ONLY the final enhanced string. No meta-talk.`,
     });
-
-    if (!response.ok) {
-      throw new Error("Gemini API failed");
-    }
-
-    const data = await response.json();
-
-    const text =
-      data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-    if (!text) {
-      throw new Error("No response from AI");
-    }
-
-    return text;
-  } catch (err) {
-    console.error(err);
-    throw new Error("AI generation failed. Try again.");
+    
+    const enhancedText = response.text;
+    if (!enhancedText) throw new Error("Empty response from Gemini");
+    
+    return enhancedText.trim();
+  } catch (error) {
+    console.error("Gemini 3 enhancement failure:", error);
+    return `${originalPrompt}, highly detailed masterpiece, cinematic lighting, 8k resolution`;
   }
-}
+};

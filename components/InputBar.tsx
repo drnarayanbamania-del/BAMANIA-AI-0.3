@@ -1,5 +1,5 @@
 
-import React, { useState, useImperativeHandle, forwardRef, useEffect } from 'react';
+import React, { useState, useImperativeHandle, forwardRef, useEffect, useRef } from 'react';
 import { Resolution, SavedPrompt } from '../types';
 
 interface InputBarProps {
@@ -12,13 +12,11 @@ interface InputBarProps {
 
 export interface InputBarHandle {
   setPromptAndSeed: (prompt: string, seed: number) => void;
-  clearPrompt: () => void;
+  focusInput: () => void;
 }
 
 const MAX_SEED = 2147483647;
 const MIN_SEED = 0;
-
-const RESOLUTIONS: Resolution[] = ['512x512', '1024x1024', '1536x1536', '2048x2048'];
 
 const InputBar = forwardRef<InputBarHandle, InputBarProps>(({ onGenerate, onEnhance, isLoading, credits, currentUser }, ref) => {
   const [prompt, setPrompt] = useState('');
@@ -26,9 +24,10 @@ const InputBar = forwardRef<InputBarHandle, InputBarProps>(({ onGenerate, onEnha
   const [resolution, setResolution] = useState<Resolution>('1024x1024');
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
-  const [showResMenu, setShowResMenu] = useState(false);
   const [savedPrompts, setSavedPrompts] = useState<SavedPrompt[]>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
 
+  // Load saved prompts on mount or user change
   useEffect(() => {
     const saved = localStorage.getItem(`bamania_saved_${currentUser}`);
     if (saved) {
@@ -45,9 +44,8 @@ const InputBar = forwardRef<InputBarHandle, InputBarProps>(({ onGenerate, onEnha
       setPrompt(p);
       setSeed(s.toString());
     },
-    clearPrompt: () => {
-      setPrompt('');
-      setSeed('');
+    focusInput: () => {
+      inputRef.current?.focus();
     }
   }));
 
@@ -62,11 +60,6 @@ const InputBar = forwardRef<InputBarHandle, InputBarProps>(({ onGenerate, onEnha
       const clampedVal = Math.max(MIN_SEED, Math.min(MAX_SEED, numericVal));
       setSeed(clampedVal.toString());
     }
-  };
-
-  const handleRandomSeed = () => {
-    const randomVal = Math.floor(Math.random() * (MAX_SEED + 1));
-    setSeed(randomVal.toString());
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -99,6 +92,7 @@ const InputBar = forwardRef<InputBarHandle, InputBarProps>(({ onGenerate, onEnha
     const updated = [newSaved, ...savedPrompts];
     setSavedPrompts(updated);
     localStorage.setItem(`bamania_saved_${currentUser}`, JSON.stringify(updated));
+    setShowLibrary(true);
   };
 
   const handleDeleteSaved = (id: string, e: React.MouseEvent) => {
@@ -118,9 +112,8 @@ const InputBar = forwardRef<InputBarHandle, InputBarProps>(({ onGenerate, onEnha
   const isOutOfCredits = credits <= 0;
 
   return (
-    <div className="fixed bottom-10 left-1/2 -translate-x-1/2 w-full max-w-5xl px-6 z-50 animate-in slide-in-from-bottom-12 duration-1000">
+    <div className="fixed bottom-10 left-1/2 lg:left-[calc(50%+160px)] -translate-x-1/2 w-full max-w-5xl px-6 z-50 animate-in slide-in-from-bottom-12 duration-1000">
       
-      {/* Saved Prompts Library Popover */}
       {showLibrary && (
         <div className="absolute bottom-full left-0 right-0 mb-6 px-6 animate-in slide-in-from-bottom-6 fade-in duration-500">
           <div className="glass max-h-72 overflow-y-auto rounded-[32px] p-6 shadow-[0_30px_60px_rgba(0,0,0,0.8)] border border-white/10 custom-scrollbar backdrop-blur-3xl">
@@ -167,138 +160,113 @@ const InputBar = forwardRef<InputBarHandle, InputBarProps>(({ onGenerate, onEnha
       <div className="flex flex-col gap-3">
         <form 
           onSubmit={handleSubmit}
-          className={`glass p-2 rounded-[32px] flex flex-wrap md:flex-nowrap items-center gap-2 shadow-[0_40px_100px_rgba(0,0,0,0.8)] border border-white/10 backdrop-blur-3xl transition-all duration-700 ${isEnhancing ? 'ring-2 ring-purple-500/40 shadow-purple-500/10' : ''} ${isOutOfCredits ? 'border-red-500/30' : 'focus-within:border-blue-500/30'}`}
+          className={`glass p-3 rounded-[32px] flex flex-wrap md:flex-nowrap items-center gap-3 shadow-[0_40px_100px_rgba(0,0,0,0.8)] border border-white/10 backdrop-blur-3xl transition-all duration-700 ${isEnhancing ? 'ring-2 ring-purple-500/40 shadow-purple-500/10' : ''} ${isOutOfCredits ? 'border-red-500/30' : ''}`}
         >
-          {/* Resolution Selector */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setShowResMenu(!showResMenu)}
-              className="px-5 py-4 glass border border-white/5 rounded-2xl text-[10px] font-black text-blue-400 uppercase tracking-widest hover:bg-white/5 transition-all flex items-center gap-2"
-            >
-              {resolution}
-              <svg className={`w-3 h-3 transition-transform ${showResMenu ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" /></svg>
-            </button>
-            {showResMenu && (
-              <div className="absolute bottom-full left-0 mb-3 glass rounded-2xl border border-white/10 shadow-2xl p-2 min-w-[140px] animate-in slide-in-from-bottom-2 fade-in">
-                {RESOLUTIONS.map((res) => (
-                  <button
-                    key={res}
-                    type="button"
-                    onClick={() => { setResolution(res); setShowResMenu(false); }}
-                    className={`w-full text-left px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${resolution === res ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
-                  >
-                    {res}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Prompt Input Area */}
-          <div className="flex-1 min-w-[200px] px-6 py-2 relative overflow-hidden group">
-            {isEnhancing && <div className="absolute inset-0 shimmer opacity-20 z-0"></div>}
-            <input
-              type="text"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder={isOutOfCredits ? "Daily credits depleted. Link required..." : (isEnhancing ? "Gemini is dreaming up patterns..." : "Type your visual imagination...")}
-              className={`w-full bg-transparent border-none outline-none placeholder-gray-600 text-[17px] font-medium relative z-10 disabled:opacity-50 tracking-tight ${isOutOfCredits ? 'text-red-400' : 'text-white'}`}
-              disabled={isLoading || isEnhancing || isOutOfCredits}
-            />
-          </div>
-
-          {/* Advanced Seed Controls */}
-          <div className="flex items-center gap-2 glass px-4 py-2 rounded-2xl border border-white/5 bg-black/20">
-            <div className="flex flex-col">
-              <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest mb-0.5">Seed Control</span>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  value={seed}
-                  onChange={handleSeedChange}
-                  placeholder="AUTO"
-                  min={MIN_SEED}
-                  max={MAX_SEED}
-                  className="w-20 bg-transparent border-none outline-none text-white placeholder-gray-700 text-[12px] font-bold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none focus:text-blue-400 transition-colors"
-                  disabled={isLoading || isEnhancing || isOutOfCredits}
-                />
-                <button
-                  type="button"
-                  onClick={handleRandomSeed}
-                  disabled={isLoading || isEnhancing || isOutOfCredits}
-                  title="Randomize Seed"
-                  className="p-1.5 glass rounded-lg border border-white/10 hover:bg-white/10 text-gray-400 hover:text-white transition-all active:rotate-180 duration-500"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex items-center gap-2 pr-1 ml-auto">
+          {/* 1. MAGIC ENHANCE BUTTON - LEFT */}
+          <div className="flex items-center gap-2 pl-1">
             <button
               type="button"
               onClick={handleEnhance}
-              title="Magic Enhance with Gemini"
+              title="Magic Enhance"
               disabled={!prompt.trim() || isEnhancing || isLoading || isOutOfCredits}
               className={`flex items-center justify-center p-4 rounded-2xl transition-all duration-500 disabled:opacity-30 group relative border ${
                 isEnhancing 
                 ? 'bg-purple-600/30 text-purple-100 border-purple-500/50 scale-105 shadow-[0_0_20px_rgba(168,85,247,0.5)]' 
-                : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10 text-white active:scale-90'
+                : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10 text-white hover:scale-105 active:scale-90'
               }`}
             >
               {isEnhancing ? (
-                <div className="w-5 h-5 border-[3px] border-white/20 border-t-white rounded-full animate-spin"></div>
+                <div className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin"></div>
               ) : (
-                <svg className="w-5 h-5 text-purple-400 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                <svg className="w-5 h-5 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 11-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732l-3.354 1.935-1.18 4.455a1 1 0 01-1.933 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732l3.354-1.935 1.18-4.455A1 1 0 0112 2z" clipRule="evenodd" />
                 </svg>
               )}
             </button>
-
             <button
               type="button"
               onClick={handleSavePrompt}
-              title="Save to Library"
-              disabled={!prompt.trim() || isLoading || isEnhancing}
-              className="flex items-center justify-center p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 text-white hover:scale-105 active:scale-90 transition-all group"
+              title="Save to Bank"
+              disabled={!prompt.trim() || isOutOfCredits}
+              className="p-4 bg-white/5 border border-white/5 rounded-2xl text-white hover:bg-white/10 hover:border-white/10 transition-all hover:scale-105 active:scale-90 disabled:opacity-30"
             >
-              <svg className="w-5 h-5 text-blue-400 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
               </svg>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setShowLibrary(!showLibrary)}
-              title="Open Library"
-              className={`flex items-center justify-center p-4 rounded-2xl transition-all duration-500 group border ${showLibrary ? 'bg-blue-600/30 border-blue-500/50 text-blue-400' : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10 text-white active:scale-90'}`}
-            >
-              <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-              </svg>
-            </button>
-
-            <button
-              type="submit"
-              disabled={!prompt.trim() || isLoading || isEnhancing || isOutOfCredits}
-              className={`px-8 py-4 rounded-2xl font-black text-[13px] hover:scale-105 active:scale-[0.94] transition-all duration-500 disabled:opacity-30 disabled:scale-100 flex items-center gap-3 shadow-2xl border ${isOutOfCredits ? 'bg-red-600/20 text-red-500 border-red-500/40' : 'bg-blue-600 text-white border-blue-500'}`}
-            >
-              {isLoading ? (
-                <div className="w-5 h-5 border-[3px] border-white/20 border-t-white rounded-full animate-spin"></div>
-              ) : (
-                <>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-                  <span className="uppercase tracking-[0.1em]">{isOutOfCredits ? 'Link Lost' : 'Generate Image'}</span>
-                </>
-              )}
             </button>
           </div>
+
+          {/* 2. PROMPT INPUT */}
+          <div className="flex-1 min-w-[200px] relative">
+            <input 
+              ref={inputRef}
+              type="text" 
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder={isOutOfCredits ? "NEURAL CREDITS EXHAUSTED" : "Describe your neural vision..."}
+              disabled={isLoading || isEnhancing || isOutOfCredits}
+              className="w-full bg-transparent border-none text-white text-base py-3 px-2 outline-none placeholder:text-gray-600 font-medium"
+            />
+          </div>
+
+          {/* 3. SETTINGS & ACTIONS */}
+          <div className="flex items-center gap-3">
+             {/* Seed Input (Desktop) */}
+             <div className="hidden lg:flex items-center gap-2 bg-black/40 border border-white/5 px-4 py-2 rounded-2xl">
+               <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest">Seed</span>
+               <input 
+                type="text" 
+                value={seed}
+                onChange={handleSeedChange}
+                placeholder="Random"
+                className="w-20 bg-transparent border-none text-[11px] text-blue-500 font-black outline-none placeholder:text-gray-800"
+               />
+             </div>
+
+             {/* Resolution Selector */}
+             <div className="relative group/res">
+                <select 
+                  value={resolution} 
+                  onChange={(e) => setResolution(e.target.value as Resolution)}
+                  className="bg-black/40 border border-white/5 px-4 py-3 rounded-2xl text-[10px] font-black text-gray-400 uppercase tracking-widest outline-none appearance-none hover:border-white/20 transition-all cursor-pointer"
+                >
+                  <option value="512x512">512px</option>
+                  <option value="1024x1024">1024px</option>
+                  <option value="1536x1536">1536px</option>
+                  <option value="2048x2048">2048px</option>
+                </select>
+             </div>
+
+             {/* Library Toggle */}
+             <button
+              type="button"
+              onClick={() => setShowLibrary(!showLibrary)}
+              className="p-4 bg-white/5 border border-white/5 rounded-2xl text-white hover:bg-white/10 transition-all"
+             >
+               <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+               </svg>
+             </button>
+
+             {/* Generate Button */}
+             <button 
+              type="submit"
+              disabled={!prompt.trim() || isLoading || isEnhancing || isOutOfCredits}
+              className={`flex items-center justify-center gap-3 py-4 px-8 rounded-2xl font-black uppercase tracking-[0.2em] text-[11px] transition-all duration-500 shadow-2xl disabled:opacity-30 disabled:grayscale ${isOutOfCredits ? 'bg-red-600/20 text-red-500 border border-red-500/30' : 'bg-blue-600 text-white hover:bg-blue-500 hover:scale-105 active:scale-95'}`}
+             >
+               {isLoading ? 'Synthesizing...' : 'Generate'}
+               {!isLoading && (
+                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 5l7 7m0 0l-7 7m7-7H3" />
+                 </svg>
+               )}
+             </button>
+          </div>
         </form>
+        
+        <div className="flex justify-center gap-6">
+           <p className="text-[9px] font-black text-gray-700 uppercase tracking-[0.4em]">Bamania Synthesis Cluster — Phase 4</p>
+        </div>
       </div>
     </div>
   );
