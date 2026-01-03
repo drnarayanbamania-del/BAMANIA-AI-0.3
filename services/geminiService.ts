@@ -16,28 +16,28 @@ export const enhancePrompt = async (originalPrompt: string): Promise<string> => 
   try {
     const ai = new GoogleGenAI({ apiKey });
     
-    // Using gemini-2.5-flash-native-audio-preview-09-2025 as the 2.5 series text handler
+    // Using gemini-3-flash-preview for high-quality text-to-prompt expansion
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-native-audio-preview-09-2025',
+      model: 'gemini-3-flash-preview',
       contents: `You are a professional prompt engineer for Bamania AI. 
-      Your task is to take a simple prompt and transform it into a high-detail, artistic masterpiece description optimized for an image generator.
+      Transform this simple prompt into a hyper-detailed, artistic visual protocol for an image generator.
       
       Original: ${originalPrompt}
       
-      Follow these rules:
-      1. Add atmospheric lighting (e.g., volumetric, cinematic, neon).
-      2. Specify artistic medium (e.g., hyper-realistic digital art, unreal engine 5 render).
-      3. Use sensory adjectives and high-resolution keywords (8k, masterpiece, intricate textures).
-      4. Keep the core subject but elevate its grandeur.
-      5. Return ONLY the final enhanced string. No explanations.`,
+      Requirements:
+      1. Atmospheric lighting (volumetric, cinematic, neon, or golden hour).
+      2. Specific artistic medium (hyper-realistic, octane render, oil painting, etc.).
+      3. Sensory details and texture keywords (intricate, 8k, masterwork).
+      4. Elevate the concept while keeping the core subject.
+      5. Return ONLY the final enhanced string. No meta-talk.`,
     });
     
-    const enhancedText = response.text?.trim();
+    const enhancedText = response.text;
     if (!enhancedText) throw new Error("Empty response from Gemini");
     
-    return enhancedText;
+    return enhancedText.trim();
   } catch (error) {
-    console.error("Gemini 2.5 enhancement failed:", error);
+    console.error("Gemini 3 enhancement failure:", error);
     return `${originalPrompt}, highly detailed masterpiece, cinematic lighting, 8k resolution`;
   }
 };
