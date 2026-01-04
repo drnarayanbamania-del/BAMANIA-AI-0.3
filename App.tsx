@@ -1,20 +1,18 @@
-function App() {
+export default function App() {
   return (
     <div
       style={{
         minHeight: "100vh",
-        backgroundColor: "#020617",
-        color: "white",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+        background: "#0f172a",
+        color: "white",
         fontSize: "28px",
         fontWeight: "bold",
       }}
     >
-      ✅ BAMANIA AI APP WORKING
+      🚀 Bamania AI is LIVE on Vercel!
     </div>
   );
 }
-
-export default App;
